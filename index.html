@@ -1,0 +1,914 @@
+<!DOCTYPE html>
+<html lang="th" class="h-full bg-slate-950">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Resume Screening Hub - ระบบคัดกรองเรซูเม่ด้วย AI</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome for Premium Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts: Plus Jakarta Sans & Sarabun for Thai compatibility -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- PDF.js library to parse PDF files in the browser -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', 'Sarabun', sans-serif;
+        }
+        /* Custom scrollbar for premium feel */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #475569;
+        }
+    </style>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f5f3ff',
+                            100: '#ede9fe',
+                            500: '#8b5cf6',
+                            600: '#7c3aed',
+                            700: '#6d28d9',
+                            950: '#0f172a'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="h-full text-slate-100 flex flex-col overflow-hidden">
+
+    <!-- Top Navigation Bar -->
+    <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur-md px-6 py-4 flex flex-wrap items-center justify-between gap-4 shrink-0">
+        <div class="flex items-center gap-3">
+            <div class="bg-gradient-to-tr from-brand-600 to-indigo-500 p-2.5 rounded-xl shadow-lg shadow-brand-500/20">
+                <i class="fa-solid fa-wand-magic-sparkles text-xl text-white"></i>
+            </div>
+            <div>
+                <h1 class="text-xl font-bold bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent">
+                    AI Resume Screening Hub
+                </h1>
+                <p class="text-xs text-slate-400">ระบบวิเคราะห์และจัดอันดับผู้สมัครด้วย Gemini AI (เดสก์ท็อปรันตรง 100%)</p>
+            </div>
+        </div>
+
+        <!-- Connection Settings -->
+        <div class="flex items-center gap-3 flex-wrap">
+            <!-- API Key Input Field -->
+            <div class="relative">
+                <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-500">
+                    <i class="fa-solid fa-key text-xs"></i>
+                </span>
+                <input type="password" id="apiKeyInput" 
+                    placeholder="ใส่ Gemini API Key (ถ้ามี)" 
+                    class="bg-slate-950 border border-slate-800 rounded-lg pl-9 pr-8 py-2 text-xs text-slate-300 focus:outline-none focus:border-brand-500 w-52 transition-all"
+                />
+                <button onclick="toggleApiKeyVisibility()" class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-500 hover:text-slate-300">
+                    <i id="apiKeyEyeIcon" class="fa-solid fa-eye text-xs"></i>
+                </button>
+            </div>
+            <button onclick="saveApiKey()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs px-3 py-2 rounded-lg font-medium transition-all">
+                บันทึก Key
+            </button>
+            <a href="https://aistudio.google.com/" target="_blank" class="text-xs text-brand-400 hover:text-brand-300 flex items-center gap-1">
+                <i class="fa-solid fa-circle-info"></i> รับคีย์ฟรีที่นี่
+            </a>
+        </div>
+    </header>
+
+    <!-- Main Workspace -->
+    <main class="flex-1 flex flex-col lg:flex-row overflow-hidden">
+        
+        <!-- Left Sidebar: Configuration (Job Description & Upload) -->
+        <section class="w-full lg:w-[380px] border-r border-slate-800 bg-slate-900/30 p-5 flex flex-col gap-5 overflow-y-auto shrink-0">
+            
+            <!-- Step 1: Job Description -->
+            <div class="bg-slate-900/60 border border-slate-800 rounded-xl p-4 flex flex-col gap-3">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <span class="flex h-6 w-6 items-center justify-center rounded-full bg-brand-500/10 text-brand-400 text-xs font-bold">1</span>
+                        <h2 class="text-sm font-semibold text-slate-200">คุณสมบัติที่ต้องการ (JD)</h2>
+                    </div>
+                    <button onclick="loadDemoJD()" class="text-[11px] text-brand-400 hover:text-brand-300 font-medium">
+                        <i class="fa-solid fa-wand-magic-sparkles mr-1"></i> ใช้ตัวอย่าง JD
+                    </button>
+                </div>
+                
+                <div>
+                    <label class="block text-[11px] text-slate-400 mb-1">ตำแหน่งงานที่กำลังหา</label>
+                    <input type="text" id="jobTitleInput" placeholder="เช่น Production Manager" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-1.5 text-xs text-slate-300 focus:outline-none focus:border-brand-500">
+                </div>
+
+                <div>
+                    <label class="block text-[11px] text-slate-400 mb-1">ทักษะและเงื่อนไขสำคัญที่ต้องมี (ช่วยวิเคราะห์ความเข้ากันได้)</label>
+                    <textarea id="jdInput" rows="6" 
+                        placeholder="ระบุคุณสมบัติที่ต้องการ... เช่น&#10;- ประสบการณ์โรงงานอาหาร 5 ปีขึ้นไป&#10;- มีทักษะ GMP/HACCP&#10;- บริหารทีมงานอย่างน้อย 20 คน&#10;- สามารถใช้ Power BI และเข้าใจ OEE"
+                        class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-xs text-slate-300 focus:outline-none focus:border-brand-500 resize-none font-sans"
+                    ></textarea>
+                </div>
+            </div>
+
+            <!-- Step 2: Upload Resumes -->
+            <div class="bg-slate-900/60 border border-slate-800 rounded-xl p-4 flex flex-col gap-3">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <span class="flex h-6 w-6 items-center justify-center rounded-full bg-brand-500/10 text-brand-400 text-xs font-bold">2</span>
+                        <h2 class="text-sm font-semibold text-slate-200">อัปโหลด Resume (PDF)</h2>
+                    </div>
+                </div>
+
+                <!-- Drag & Drop Area -->
+                <div id="dropZone" class="border-2 border-dashed border-slate-800 hover:border-brand-500/50 rounded-xl p-6 flex flex-col items-center justify-center text-center cursor-pointer transition-all bg-slate-950/30">
+                    <input type="file" id="fileInput" multiple accept=".pdf" class="hidden" onchange="handleFileSelect(event)">
+                    <i class="fa-solid fa-file-pdf text-3xl text-slate-600 mb-2" id="uploadIcon"></i>
+                    <p class="text-xs text-slate-300 font-medium mb-1">ลากไฟล์ PDF มาวางตรงนี้</p>
+                    <p class="text-[10px] text-slate-500">หรือคลิกเลือกไฟล์เพื่ออัปโหลด</p>
+                </div>
+
+                <!-- Demo Actions for easy trial -->
+                <div class="mt-1 pt-3 border-t border-slate-800/60">
+                    <p class="text-[10px] text-slate-500 mb-2 text-center">หรือทดสอบการจัดอันดับได้อย่างรวดเร็ว</p>
+                    <button onclick="injectDemoCandidates()" class="w-full bg-slate-800/80 hover:bg-slate-800 text-slate-200 text-xs py-2 px-3 rounded-lg flex items-center justify-center gap-2 border border-slate-700/50 transition-all font-medium">
+                        <i class="fa-solid fa-users text-brand-400"></i> โหลดผู้สมัครจำลอง 3 ท่าน
+                    </button>
+                </div>
+            </div>
+
+            <!-- Processing Status / Stats -->
+            <div id="processingPanel" class="hidden bg-slate-900/60 border border-slate-800 rounded-xl p-4 flex flex-col gap-2.5">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-xs font-semibold text-slate-300">สถานะการประมวลผล</h3>
+                    <span id="queueProgress" class="text-[10px] text-brand-400 font-bold bg-brand-500/10 px-2 py-0.5 rounded">0/0</span>
+                </div>
+                <div class="w-full bg-slate-950 rounded-full h-1.5 overflow-hidden">
+                    <div id="progressBar" class="bg-gradient-to-r from-brand-500 to-indigo-500 h-1.5 rounded-full transition-all duration-300" style="width: 0%"></div>
+                </div>
+                <p id="statusMessage" class="text-[11px] text-slate-400 italic">กำลังอ่านข้อมูลไฟล์...</p>
+            </div>
+
+        </section>
+
+        <!-- Right Side: Dashboard & Screening Results -->
+        <section class="flex-1 flex flex-col overflow-hidden bg-slate-950">
+            
+            <!-- Dashboard Toolbar -->
+            <div class="p-4 border-b border-slate-800 bg-slate-900/20 flex flex-wrap items-center justify-between gap-4 shrink-0">
+                <div class="flex items-center gap-3">
+                    <h2 class="text-sm font-semibold text-slate-200">รายชื่อและการให้คะแนนผู้สมัคร</h2>
+                    <span id="candidateCount" class="text-xs text-slate-400 bg-slate-800 px-2 py-0.5 rounded-full font-medium">0 รายชื่อ</span>
+                </div>
+                
+                <div class="flex items-center gap-2">
+                    <button onclick="clearAllCandidates()" class="text-xs text-rose-400 hover:text-rose-300 px-3 py-1.5 rounded-lg border border-rose-500/20 hover:bg-rose-500/10 transition-all flex items-center gap-1.5 font-medium">
+                        <i class="fa-solid fa-trash-can"></i> ล้างประวัติทั้งหมด
+                    </button>
+                </div>
+            </div>
+
+            <!-- Main Dashboard Area Split screen or empty state -->
+            <div class="flex-1 flex overflow-hidden">
+                
+                <!-- Candidate List (Left Inside) -->
+                <div class="w-full md:w-1/2 border-r border-slate-800 flex flex-col overflow-y-auto p-4 gap-3" id="candidateListContainer">
+                    <!-- Empty State -->
+                    <div id="emptyState" class="my-auto py-12 flex flex-col items-center text-center">
+                        <div class="bg-slate-900 border border-slate-800 p-4 rounded-full mb-4 text-slate-600">
+                            <i class="fa-solid fa-user-tie text-4xl"></i>
+                        </div>
+                        <h3 class="text-sm font-semibold text-slate-300 mb-1">ยังไม่มีข้อมูลผู้สมัครที่นำเข้า</h3>
+                        <p class="text-xs text-slate-500 max-w-xs leading-relaxed">
+                            เลือกตัวอย่าง JD แล้วลากไฟล์ PDF มาวาง หรือกดปุ่ม "โหลดผู้สมัครจำลอง" ด้านซ้าย เพื่อเริ่มใช้งานระบบคัดกรองทันที
+                        </p>
+                    </div>
+
+                    <!-- Dynamic candidate cards insert here -->
+                    <div id="candidateCardsList" class="flex flex-col gap-2.5"></div>
+                </div>
+
+                <!-- Analysis Details Panel (Right Inside) -->
+                <div class="hidden md:flex md:w-1/2 flex-col bg-slate-900/10 overflow-y-auto p-5" id="detailPanel">
+                    <!-- Placeholder State when no candidate is selected -->
+                    <div id="detailPlaceholder" class="my-auto text-center flex flex-col items-center justify-center text-slate-500 p-8">
+                        <i class="fa-solid fa-magnifying-glass-chart text-4xl mb-3 text-slate-700"></i>
+                        <p class="text-xs">คลิกเลือกรายชื่อผู้สมัครเพื่อเปิดดูผลวิเคราะห์อย่างละเอียด</p>
+                    </div>
+
+                    <!-- Complete Candidate Evaluation Report -->
+                    <div id="candidateDetailReport" class="hidden flex flex-col gap-5">
+                        
+                        <!-- Header Box -->
+                        <div class="bg-slate-900/80 border border-slate-800 p-4 rounded-xl flex items-start justify-between gap-4">
+                            <div>
+                                <h3 id="detName" class="text-base font-bold text-white mb-1">สมชาย มีใจรักโรงงาน</h3>
+                                <p id="detTitle" class="text-xs text-slate-400 flex items-center gap-1">
+                                    <i class="fa-solid fa-briefcase"></i> <span id="detTitleText">Senior Production Supervisor</span>
+                                </p>
+                            </div>
+                            <div class="text-right">
+                                <span class="block text-[10px] text-slate-400 font-semibold mb-1">คะแนนความเหมาะสม</span>
+                                <div class="inline-flex items-center gap-1.5 bg-brand-500/20 border border-brand-500/30 text-brand-300 font-bold text-sm px-3 py-1 rounded-lg">
+                                    <i class="fa-solid fa-award"></i> <span id="detScore">85/100</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Match Meter -->
+                        <div class="bg-slate-900/40 border border-slate-800 p-4 rounded-xl flex flex-col gap-2">
+                            <div class="flex justify-between items-center text-xs text-slate-300">
+                                <span>เปอร์เซ็นต์ความตรงคุณสมบัติ (Match %)</span>
+                                <span id="detMatchPct" class="font-bold text-emerald-400">85%</span>
+                            </div>
+                            <div class="w-full bg-slate-950 rounded-full h-2.5 overflow-hidden">
+                                <div id="detMatchBar" class="bg-gradient-to-r from-emerald-500 to-teal-400 h-2.5 rounded-full" style="width: 85%"></div>
+                            </div>
+                        </div>
+
+                        <!-- Executive Summary -->
+                        <div class="flex flex-col gap-2">
+                            <h4 class="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
+                                <i class="fa-solid fa-paragraph text-brand-400"></i> สรุปความเห็นของ AI (Executive Summary)
+                            </h4>
+                            <div class="bg-slate-900/60 border border-slate-800 p-3.5 rounded-xl text-xs leading-relaxed text-slate-300 italic" id="detSummary">
+                                "ผู้สมัครมีประสบการณ์โรงงานอาหารมานานกว่า 8 ปี ทักษะการจัดการทีมเยี่ยมยอด เข้าใจระบบ HACCP เป็นอย่างดี แต่จำเป็นต้องเรียนรู้เครื่องมือการวิเคราะห์ข้อมูลเพิ่มเติมอย่าง Power BI"
+                            </div>
+                        </div>
+
+                        <!-- Skills Checklist -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <!-- Found Skills -->
+                            <div class="bg-slate-900/40 border border-slate-800 p-3.5 rounded-xl flex flex-col gap-2">
+                                <h4 class="text-xs font-semibold text-emerald-400 flex items-center gap-1.5">
+                                    <i class="fa-solid fa-circle-check"></i> ทักษะที่ตรงตามกำหนด
+                                </h4>
+                                <ul id="detSkillsFound" class="flex flex-wrap gap-1.5">
+                                    <!-- Dynamic list of skills found -->
+                                </ul>
+                            </div>
+
+                            <!-- Missing Skills -->
+                            <div class="bg-slate-900/40 border border-slate-800 p-3.5 rounded-xl flex flex-col gap-2">
+                                <h4 class="text-xs font-semibold text-rose-400 flex items-center gap-1.5">
+                                    <i class="fa-solid fa-circle-xmark"></i> ทักษะที่ยังขาดหาย
+                                </h4>
+                                <ul id="detSkillsMissing" class="flex flex-wrap gap-1.5">
+                                    <!-- Dynamic list of skills missing -->
+                                </ul>
+                            </div>
+                        </div>
+
+                        <!-- Strengths & Weaknesses -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <!-- Strengths -->
+                            <div class="bg-slate-900/40 border border-slate-800 p-3.5 rounded-xl flex flex-col gap-2">
+                                <h4 class="text-xs font-semibold text-indigo-400 flex items-center gap-1.5">
+                                    <i class="fa-solid fa-shield-halved"></i> จุดเด่นที่มีมูลค่าสูง
+                                </h4>
+                                <ul id="detStrengths" class="text-xs text-slate-300 flex flex-col gap-1.5 list-disc pl-4 leading-relaxed">
+                                    <!-- List strengths -->
+                                </ul>
+                            </div>
+
+                            <!-- Weaknesses -->
+                            <div class="bg-slate-900/40 border border-slate-800 p-3.5 rounded-xl flex flex-col gap-2">
+                                <h4 class="text-xs font-semibold text-amber-400 flex items-center gap-1.5">
+                                    <i class="fa-solid fa-triangle-exclamation"></i> ข้อควรระวัง / ข้อมูลเพิ่มเติม
+                                </h4>
+                                <ul id="detWeaknesses" class="text-xs text-slate-300 flex flex-col gap-1.5 list-disc pl-4 leading-relaxed">
+                                    <!-- List weaknesses -->
+                                </ul>
+                            </div>
+                        </div>
+
+                        <!-- Automation Actions (Simulated) -->
+                        <div class="border-t border-slate-800 pt-4 flex flex-col gap-3">
+                            <h4 class="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
+                                <i class="fa-solid fa-bolt text-amber-400"></i> AI Recruiter Automation Hub (ทดสอบระบบนัดหมาย)
+                            </h4>
+                            <div class="grid grid-cols-2 gap-2">
+                                <button onclick="triggerAction('email')" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 text-xs py-2 px-3 rounded-lg flex items-center justify-center gap-1.5 transition-all">
+                                    <i class="fa-solid fa-paper-plane text-brand-400"></i> ส่งเมลนัดสัมภาษณ์
+                                </button>
+                                <button onclick="triggerAction('calendar')" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 text-xs py-2 px-3 rounded-lg flex items-center justify-center gap-1.5 transition-all">
+                                    <i class="fa-solid fa-calendar-days text-indigo-400"></i> สร้างนัดบน Calendar
+                                </button>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- Notification Toast Element -->
+    <div id="toast" class="fixed bottom-5 right-5 z-50 transform translate-y-10 opacity-0 bg-slate-900 border border-slate-800 shadow-xl rounded-xl p-4 flex items-center gap-3 transition-all duration-300 max-w-sm">
+        <div id="toastIcon" class="text-emerald-400 bg-emerald-400/10 p-2 rounded-lg">
+            <i class="fa-solid fa-circle-check text-lg"></i>
+        </div>
+        <div>
+            <h4 id="toastTitle" class="text-xs font-bold text-white">ดำเนินการสำเร็จ</h4>
+            <p id="toastMessage" class="text-[11px] text-slate-400">บันทึกข้อมูลเรียบร้อยแล้ว</p>
+        </div>
+    </div>
+
+    <!-- Details View Drawer (for Mobile Screens) -->
+    <div id="mobileDrawer" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-40 hidden transition-all flex justify-end">
+        <div class="w-full max-w-md bg-slate-900 h-full overflow-y-auto border-l border-slate-800 flex flex-col">
+            <div class="p-4 border-b border-slate-800 flex items-center justify-between bg-slate-950/40">
+                <span class="text-xs font-bold text-slate-400">ผลการวิเคราะห์ผู้สมัคร</span>
+                <button onclick="closeMobileDrawer()" class="text-slate-400 hover:text-white p-1">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            <div class="p-4" id="mobileDrawerContent"></div>
+        </div>
+    </div>
+
+    <!-- Javascript Core Logic -->
+    <script>
+        // PDF.js global setup
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+
+        // Set App States
+        let candidates = [];
+        let selectedCandidateId = null;
+        let apiKey = "";
+
+        // UI Init
+        window.addEventListener('load', () => {
+            // Load saved settings
+            const savedKey = localStorage.getItem('gemini_api_key');
+            if (savedKey) {
+                document.getElementById('apiKeyInput').value = savedKey;
+                apiKey = savedKey;
+            }
+
+            // Load saved state or empty
+            const savedCandidates = localStorage.getItem('screened_candidates');
+            if (savedCandidates) {
+                candidates = JSON.parse(savedCandidates);
+                renderCandidateList();
+            }
+
+            // Setup Drag and Drop
+            const dropZone = document.getElementById('dropZone');
+            
+            dropZone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                dropZone.classList.add('border-brand-500', 'bg-brand-500/5');
+            });
+
+            dropZone.addEventListener('dragleave', () => {
+                dropZone.classList.remove('border-brand-500', 'bg-brand-500/5');
+            });
+
+            dropZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                dropZone.classList.remove('border-brand-500', 'bg-brand-500/5');
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    processUploadedFiles(files);
+                }
+            });
+
+            dropZone.addEventListener('click', () => {
+                document.getElementById('fileInput').click();
+            });
+        });
+
+        // Toggle Password view
+        function toggleApiKeyVisibility() {
+            const input = document.getElementById('apiKeyInput');
+            const icon = document.getElementById('apiKeyEyeIcon');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.className = 'fa-solid fa-eye-slash text-xs';
+            } else {
+                input.type = 'password';
+                icon.className = 'fa-solid fa-eye text-xs';
+            }
+        }
+
+        // Save API Key locally
+        function saveApiKey() {
+            const val = document.getElementById('apiKeyInput').value.trim();
+            apiKey = val;
+            localStorage.setItem('gemini_api_key', val);
+            showToast("บันทึกคีย์เรียบร้อย", "ระบบได้รับการตั้งค่า Gemini API Key แล้ว", "emerald");
+        }
+
+        // Toast Messages
+        function showToast(title, msg, type = 'emerald') {
+            const toast = document.getElementById('toast');
+            const iconWrap = document.getElementById('toastIcon');
+            const tTitle = document.getElementById('toastTitle');
+            const tMsg = document.getElementById('toastMessage');
+
+            tTitle.innerText = title;
+            tMsg.innerText = msg;
+
+            if (type === 'emerald') {
+                iconWrap.className = "text-emerald-400 bg-emerald-400/10 p-2 rounded-lg";
+                iconWrap.innerHTML = `<i class="fa-solid fa-circle-check text-lg"></i>`;
+            } else if (type === 'rose') {
+                iconWrap.className = "text-rose-400 bg-rose-400/10 p-2 rounded-lg";
+                iconWrap.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-lg"></i>`;
+            } else if (type === 'info') {
+                iconWrap.className = "text-indigo-400 bg-indigo-400/10 p-2 rounded-lg";
+                iconWrap.innerHTML = `<i class="fa-solid fa-circle-info text-lg"></i>`;
+            }
+
+            toast.classList.remove('translate-y-10', 'opacity-0');
+            toast.classList.add('translate-y-0', 'opacity-100');
+
+            setTimeout(() => {
+                toast.classList.remove('translate-y-0', 'opacity-100');
+                toast.classList.add('translate-y-10', 'opacity-0');
+            }, 4000);
+        }
+
+        // Fill Demo JD
+        function loadDemoJD() {
+            document.getElementById('jobTitleInput').value = "Production Manager (โรงงานผลิตอาหารสำเร็จรูป)";
+            document.getElementById('jdInput').value = 
+`คุณสมบัติและทักษะที่ต้องการ:
+- มีประสบการณ์สายงานอุตสาหกรรมผลิตอาหารไม่น้อยกว่า 5 ปี
+- มีความรู้ความเข้าใจเรื่อง GMP, HACCP, หรือระบบมาตรฐานอาหารอย่างลึกซึ้ง
+- มีประสบการณ์ในการควบคุม บริหารจัดการ และพัฒนาพนักงานระดับปฏิบัติการไม่ต่ำกว่า 25 คน
+- เข้าใจแนวคิดและวิธีการวัดค่า OEE (Overall Equipment Effectiveness)
+- สามารถสร้างรายงาน และควบคุมกระบวนการผลิตด้วยเครื่องมือ Dashboard อย่างเช่น Power BI ได้`;
+            
+            showToast("โหลดข้อกำหนดตัวอย่างสำเร็จ", "พร้อมใช้งานเพื่อเปรียบเทียบผู้สมัคร", "info");
+        }
+
+        // Manual PDF File Selection
+        function handleFileSelect(event) {
+            const files = event.target.files;
+            if (files.length > 0) {
+                processUploadedFiles(files);
+            }
+        }
+
+        // Core File Processing Handler
+        async function processUploadedFiles(files) {
+            // Check Job Description first
+            const jobTitle = document.getElementById('jobTitleInput').value.trim();
+            const jdContent = document.getElementById('jdInput').value.trim();
+
+            if (!jobTitle || !jdContent) {
+                showToast("ข้อมูลขาดหาย", "โปรดตั้งชื่อตำแหน่งงาน และใส่รายละเอียด JD ก่อนการอัปโหลด", "rose");
+                return;
+            }
+
+            const pPanel = document.getElementById('processingPanel');
+            const qProg = document.getElementById('queueProgress');
+            const pBar = document.getElementById('progressBar');
+            const sMsg = document.getElementById('statusMessage');
+
+            pPanel.classList.remove('hidden');
+            const fileCount = files.length;
+            qProg.innerText = `0/${fileCount}`;
+            pBar.style.width = `0%`;
+
+            let successCount = 0;
+
+            for (let i = 0; i < fileCount; i++) {
+                const file = files[i];
+                sMsg.innerText = `กำลังอ่านเนื้อหา PDF (${file.name})...`;
+                pBar.style.width = `${((i) / fileCount) * 100}%`;
+                qProg.innerText = `${i}/${fileCount}`;
+
+                try {
+                    // Extract text from pdf in-browser
+                    const extractedText = await extractTextFromPDF(file);
+                    
+                    sMsg.innerText = `กำลังส่งวิเคราะห์ผ่าน Gemini AI...`;
+
+                    // Run analysis
+                    let result;
+                    if (apiKey) {
+                        result = await callGeminiAI(extractedText, jobTitle, jdContent);
+                    } else {
+                        // Safe simulated fallback with timeout to display UI processing
+                        await new Promise(resolve => setTimeout(resolve, 2000));
+                        result = generateMockAnalysis(file.name, extractedText, jobTitle);
+                        showToast("เปิดใช้งาน Demo Mode", "วิเคราะห์ด้วยระบบจำลองเนื่องจากไม่ได้ใส่ Gemini API Key", "info");
+                    }
+
+                    // Save candidate evaluation
+                    candidates.push(result);
+                    saveCandidatesToLocalStorage();
+                    successCount++;
+
+                } catch (err) {
+                    console.error("Error processing file", file.name, err);
+                    showToast("ไม่สามารถวิเคราะห์ไฟล์ได้", `เกิดปัญหาขณะอ่านข้อมูล: ${file.name}`, "rose");
+                }
+            }
+
+            // Cleanup progress
+            pBar.style.width = `100%`;
+            qProg.innerText = `${fileCount}/${fileCount}`;
+            sMsg.innerText = `เสร็จสิ้นกระบวนการวิเคราะห์!`;
+            
+            setTimeout(() => {
+                pPanel.classList.add('hidden');
+                renderCandidateList();
+            }, 1500);
+
+            showToast("ประมวลผลเสร็จสิ้น", `คัดกรองเรซูเม่เสร็จเรียบร้อย ${successCount} รายการ`, "emerald");
+        }
+
+        // Read text from PDF inside browser
+        async function extractTextFromPDF(file) {
+            try {
+                const arrayBuffer = await file.arrayBuffer();
+                const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+                let text = "";
+                for (let i = 1; i <= pdf.numPages; i++) {
+                    const page = await pdf.getPage(i);
+                    const content = await page.getTextContent();
+                    text += content.items.map(item => item.str).join(" ") + "\n";
+                }
+                
+                if (!text.trim()) {
+                    throw new Error("PDF ไม่มีข้อความที่สามารถอ่านได้ (สแกนมาในรูปแบบรูปภาพ)");
+                }
+                return text;
+            } catch (err) {
+                console.error("PDF Parsing Error:", err);
+                throw err;
+            }
+        }
+
+        // Live Gemini API Integration with Retry and Schema Validation
+        async function callGeminiAI(resumeText, jobTitle, jdText) {
+            const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+            
+            const systemPrompt = `You are an unbiased, expert AI Recruiter & Resume Screening bot.
+Analyze the candidate's resume text and score how suitable they are against the target Job Description (JD).
+Your evaluation must eliminate all human bias, focusing only on matching actual achievements, certifications, skills and experience.
+Be lenient with terminology; understand context (e.g. if a candidate decreased cycle time or handled OEE/Lean implementations, map them as fitting Lean Manufacturing requirements).
+
+Return ONLY a single valid JSON object following this JSON schema:
+{
+  "candidateName": "String (Extract the applicant name, if unknown or image, invent a default title case name)",
+  "currentTitle": "String (Current or most recent job title)",
+  "fitScore": Integer (Score out of 100 based on exact criteria matching),
+  "matchPercentage": Integer (Suitability rate 0-100),
+  "skillsFound": ["String", "String", ... (Maximum 6 skills from JD that match Resume context)],
+  "skillsMissing": ["String", "String", ... (Key skills mentioned in JD but missing/weak in Resume)],
+  "summary": "String (An Executive Summary in Thai language explaining key fit, maximum 2-3 lines)",
+  "strengths": ["String", "String", ... (Up to 3 high value pros of candidate in Thai)],
+  "weaknesses": ["String", "String", ... (Up to 3 minor points of concern or missing skills in Thai)],
+  "decision": "String (Either 'ผ่านการกรอง (เรียกสัมภาษณ์)' or 'ไม่ผ่านการกรอง (เก็บประวัติ)')"
+}`;
+
+            const payload = {
+                contents: [{
+                    parts: [{
+                        text: `ตำแหน่งงานเป้าหมาย: ${jobTitle}\nข้อกำหนดความต้องการ (Job Description):\n${jdText}\n\nข้อความเรซูเม่ของผู้สมัคร:\n${resumeText}`
+                    }]
+                }],
+                systemInstruction: {
+                    parts: [{ text: systemPrompt }]
+                },
+                generationConfig: {
+                    responseMimeType: "application/json"
+                }
+            };
+
+            // Implementation of Exponential Backoff as per instructions
+            let attempts = 5;
+            let delay = 1000;
+            
+            for (let attempt = 1; attempt <= attempts; attempt++) {
+                try {
+                    const response = await fetch(endpoint, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`API returned HTTP Status: ${response.status}`);
+                    }
+
+                    const data = await response.json();
+                    const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+                    if (text) {
+                        const parsed = JSON.parse(text);
+                        parsed.id = 'cand_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
+                        return parsed;
+                    }
+                    throw new Error("No payload found in Response");
+                } catch (err) {
+                    if (attempt === attempts) {
+                        throw err; // Fail after maximum retries
+                    }
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                    delay *= 2; // Exponential backoff (1s, 2s, 4s, 8s...)
+                }
+            }
+        }
+
+        // Mock AI generator for immediate trial
+        function generateMockAnalysis(fileName, text, jobTitle) {
+            // Pick mock scenarios
+            const names = ["ดนัย ชัยเจริญโชค", "นพดล เกียรติวรวงศ์", "พัชรี สุขสมบูรณ์", "สมเกียรติ ยิ้มย่อง"];
+            const rName = names[Math.floor(Math.random() * names.length)];
+            const matchPercent = Math.floor(Math.random() * 41) + 50; // 50-90
+            
+            return {
+                id: 'cand_demo_' + Date.now() + '_' + Math.floor(Math.random() * 1000),
+                candidateName: rName,
+                currentTitle: "Assistant Production Manager / Shift Lead",
+                fitScore: Math.round(matchPercent * 0.95),
+                matchPercentage: matchPercent,
+                skillsFound: ["ประสบการณ์โรงงานอาหาร", "GMP/HACCP", "บริหารทีมปฏิบัติการ 30 คน"],
+                skillsMissing: ["ความชำนาญในการเขียน Dashboard", "Power BI"],
+                summary: `ผู้สมัครมีประสบการณ์ในตำแหน่งหัวหน้าสายผลิตงานอาหารแช่แข็งมาร่วม 6 ปีเต็ม สามารถคุมเครื่องจักรและเข้าใจมาตรฐานสากลเป็นอย่างดี ทักษะรอบด้านค่อนข้างดีเยี่ยม ขาดเพียงการจัดทำ Dashboard แสดงผลแบบ Real-time`,
+                strengths: [
+                    "มีประสบการณ์ตรงในโรงงานสแปมและอาหารแปรรูป",
+                    "ทัศนคติการจัดการทีมหน้าสายงานมีประสิทธิภาพ",
+                    "ควบคุมค่าและคำนวณ OEE ประจำวันได้อย่างดี"
+                ],
+                weaknesses: [
+                    "ทักษะคอมพิวเตอร์และการใช้เครื่องมือวิเคราะห์ข้อมูลอย่าง Power BI ยังไม่ชัดเจน",
+                    "ทักษะภาษาอังกฤษอยู่ในระดับเกณฑ์ปานกลาง"
+                ],
+                decision: matchPercent >= 75 ? "ผ่านการกรอง (เรียกสัมภาษณ์)" : "ไม่ผ่านการกรอง (เก็บประวัติ)"
+            };
+        }
+
+        // Inject 3 Pre-screened Demo Candidates instantly
+        function injectDemoCandidates() {
+            const demoPool = [
+                {
+                    id: 'cand_demo_1',
+                    candidateName: "กิตติพงษ์ เลิศอัครเดชา",
+                    currentTitle: "Production Manager / Manufacturing Supervisor (8+ Years)",
+                    fitScore: 92,
+                    matchPercentage: 92,
+                    skillsFound: ["โรงงานอาหารแปรรูป", "GMP / HACCP Certified", "บริหารทีม 45 คน", "Power BI", "ลด Downtime / Lean & OEE"],
+                    skillsMissing: ["SAP System Integration"],
+                    summary: "โปรไฟล์มีความเข้ากันได้สูงมาก เคยมีประสบการณ์ลด Downtime โรงงานอาหารแปรรูปถึง 18% บริหารพนักงาน 45 คน ตรวจสอบระบบคุณภาพ GMP/HACCP มีทักษะการทำ Dashboard เสนอผู้บริหารตรงตามต้องการ",
+                    strengths: [
+                        "ประสบการณ์ตรงในอุตสาหกรรมสายอาหาร 8 ปีเต็ม",
+                        "ใบเซอร์ผู้ควบคุมระบบ GMP & HACCP และ Lean Six Sigma",
+                        "มีความสามารถเด่นในการประยุกต์ใช้ OEE Dashboard ในการขับเคลื่อนฝ่ายผลิต"
+                    ],
+                    weaknesses: [
+                        "ทักษะระบบ SAP จำเป็นต้องมีคนคอยแนะนำช่วยเหลือเบื้องต้น"
+                    ],
+                    decision: "ผ่านการกรอง (เรียกสัมภาษณ์)"
+                },
+                {
+                    id: 'cand_demo_2',
+                    candidateName: "วิมลทิพย์ ศรีอรุณวงศ์",
+                    currentTitle: "QA & QC Assistant Lead",
+                    fitScore: 78,
+                    matchPercentage: 75,
+                    skillsFound: ["GMP / HACCP Auditor", "ประสบการณ์โรงงานอาหาร", "คุ้นเคยมาตรฐาน Lean"],
+                    skillsMissing: ["การบริหารทีมสายผลิตขนาดใหญ่", "ทักษะ Dashboard & Power BI"],
+                    summary: "มีพื้นฐานเรื่องความปลอดภัยทางด้านอาหารและระบบมาตรฐานสากล (GMP/HACCP) สูงมาก แต่อาจจะต้องได้รับการสนับสนุนด้านการคุมพนักงานหน้าไลน์และขาดความเชี่ยวชาญด้าน Power BI",
+                    strengths: [
+                        "เข้าใจมาตรวัดอาหารและกฎหมายสิ่งปลอมปนเป็นอย่างดี",
+                        "มีใบประกาศนียบัตร Auditor ระดับสากล",
+                        "ทักษะสื่อสารภาษาอังกฤษโดดเด่นเยี่ยมยอด"
+                    ],
+                    weaknesses: [
+                        "ประสบการณ์บริหารเป็นแบบ QA/QC ไม่ใช่คนคุมยอดผลิตหลักโดยตรง",
+                        "จำเป็นต้องเสริมความรู้เรื่องโปรแกรมแสดงผลเชิงธุรกิจเพิ่มเติม"
+                    ],
+                    decision: "ผ่านการกรอง (เรียกสัมภาษณ์)"
+                },
+                {
+                    id: 'cand_demo_3',
+                    candidateName: "ธีรพล แก้วปัญญานนท์",
+                    currentTitle: "Assembly Supervisor (อิเล็กทรอนิกส์)",
+                    fitScore: 45,
+                    matchPercentage: 42,
+                    skillsFound: ["คุมทีมงาน 20 คน", "เชี่ยวชาญการวัดค่า OEE"],
+                    skillsMissing: ["ประสบการณ์ด้านโรงงานอาหาร", "GMP / HACCP", "Power BI"],
+                    summary: "มีทักษะการคุมคนสายประกอบและวัดค่าประสิทธิผล OEE ได้อย่างดี ทว่าไม่มีทักษะและความเข้าใจในมาตรฐานสิ่งแวดล้อมอาหารและมาตรฐานความสะอาดที่ทางตำแหน่งนี้ระบุไว้โดยสิ้นเชิง",
+                    strengths: [
+                        "ทักษะกระบวนการวิศวกรรมสไตล์ Lean แข็งแกร่งมาก",
+                        "การแก้ไขปัญหาและรับมือวิกฤตหน้างานดีเลิศ"
+                    ],
+                    weaknesses: [
+                        "ไม่มีทักษะความคุ้นเคยกับกฎระเบียบสุขอนามัยสายการผลิตอาหาร",
+                        "ประวัติไม่ตรงตามที่ต้องการมากกว่าครึ่ง"
+                    ],
+                    decision: "ไม่ผ่านการกรอง (เก็บประวัติ)"
+                }
+            ];
+
+            candidates = [...candidates, ...demoPool];
+            saveCandidatesToLocalStorage();
+            renderCandidateList();
+            showToast("เพิ่มข้อมูลจำลองแล้ว", "เพิ่มผู้สมัครตัวอย่าง 3 ท่านเสร็จสิ้น (เรียงลำดับตามคะแนน)", "emerald");
+        }
+
+        // Render Cards List based on state sorted by Fit Score
+        function renderCandidateList() {
+            const listWrap = document.getElementById('candidateCardsList');
+            const emptyState = document.getElementById('emptyState');
+            const countLabel = document.getElementById('candidateCount');
+
+            // Sort candidates by match rate or score descending
+            candidates.sort((a, b) => b.fitScore - a.fitScore);
+
+            countLabel.innerText = `${candidates.length} รายชื่อ`;
+
+            if (candidates.length === 0) {
+                emptyState.classList.remove('hidden');
+                listWrap.innerHTML = "";
+                document.getElementById('detailPanel').classList.add('hidden');
+                document.getElementById('detailPlaceholder').classList.remove('hidden');
+                return;
+            }
+
+            emptyState.classList.add('hidden');
+            listWrap.innerHTML = "";
+
+            candidates.forEach((cand, idx) => {
+                const card = document.createElement('div');
+                card.onclick = () => selectCandidate(cand.id);
+                
+                const isSelected = selectedCandidateId === cand.id;
+                
+                // Set match badge colors
+                let scoreBg = "bg-rose-500/10 text-rose-400 border-rose-500/20";
+                if (cand.fitScore >= 80) {
+                    scoreBg = "bg-emerald-500/10 text-emerald-400 border-emerald-500/20";
+                } else if (cand.fitScore >= 60) {
+                    scoreBg = "bg-amber-500/10 text-amber-400 border-amber-500/20";
+                }
+
+                card.className = `p-4 rounded-xl border cursor-pointer transition-all flex flex-col gap-2.5 ${
+                    isSelected 
+                        ? 'border-brand-500 bg-brand-500/5 shadow-lg shadow-brand-500/5' 
+                        : 'border-slate-800 bg-slate-900/40 hover:border-slate-700 hover:bg-slate-900/60'
+                }`;
+
+                card.innerHTML = `
+                    <div class="flex items-start justify-between gap-2">
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs font-bold text-slate-500 w-4">#${idx+1}</span>
+                            <div>
+                                <h4 class="text-xs font-bold text-white">${cand.candidateName}</h4>
+                                <p class="text-[10px] text-slate-400 truncate max-w-[170px]">${cand.currentTitle}</p>
+                            </div>
+                        </div>
+                        <span class="border px-2 py-0.5 rounded text-[10px] font-extrabold ${scoreBg}">
+                            ${cand.fitScore}% Match
+                        </span>
+                    </div>
+
+                    <p class="text-[10px] text-slate-300 line-clamp-2 leading-relaxed italic bg-slate-950/40 p-2 rounded-lg border border-slate-800/40">
+                        "${cand.summary}"
+                    </p>
+
+                    <div class="flex items-center justify-between text-[9px] pt-1 border-t border-slate-800/40">
+                        <span class="flex items-center gap-1 text-slate-400">
+                            <i class="fa-solid fa-lightbulb text-brand-400"></i> ทักษะครบ: ${cand.skillsFound.length}
+                        </span>
+                        <span class="font-semibold text-brand-300">
+                            ${cand.decision}
+                        </span>
+                    </div>
+                `;
+
+                listWrap.appendChild(card);
+            });
+
+            // Automatically select first item if none is selected
+            if (!selectedCandidateId && candidates.length > 0) {
+                selectCandidate(candidates[0].id);
+            }
+        }
+
+        // Display Detailed Evaluation on right side panel
+        function selectCandidate(id) {
+            selectedCandidateId = id;
+            
+            // Highlight selected card
+            renderCandidateList();
+
+            const cand = candidates.find(c => c.id === id);
+            if (!cand) return;
+
+            // Populate Report
+            document.getElementById('detailPlaceholder').classList.add('hidden');
+            document.getElementById('candidateDetailReport').classList.remove('hidden');
+            document.getElementById('detailPanel').classList.remove('hidden');
+
+            document.getElementById('detName').innerText = cand.candidateName;
+            document.getElementById('detTitleText').innerText = cand.currentTitle;
+            document.getElementById('detScore').innerText = `${cand.fitScore}/100`;
+            document.getElementById('detMatchPct').innerText = `${cand.matchPercentage}%`;
+            document.getElementById('detMatchBar').style.width = `${cand.matchPercentage}%`;
+            document.getElementById('detSummary').innerText = `"${cand.summary}"`;
+
+            // Render Skills Found Badges
+            const foundWrap = document.getElementById('detSkillsFound');
+            foundWrap.innerHTML = cand.skillsFound.length > 0 
+                ? cand.skillsFound.map(s => `<li class="bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-medium px-2 py-0.5 rounded-full"><i class="fa-solid fa-check mr-0.5"></i> ${s}</li>`).join('')
+                : `<li class="text-[10px] text-slate-500">ไม่พบทักษะเด่นที่สอดคล้อง</li>`;
+
+            // Render Skills Missing Badges
+            const missingWrap = document.getElementById('detSkillsMissing');
+            missingWrap.innerHTML = cand.skillsMissing.length > 0 
+                ? cand.skillsMissing.map(s => `<li class="bg-rose-500/10 border border-rose-500/20 text-rose-400 text-[10px] font-medium px-2 py-0.5 rounded-full"><i class="fa-solid fa-xmark mr-0.5"></i> ${s}</li>`).join('')
+                : `<li class="text-[10px] text-emerald-400 font-semibold"><i class="fa-solid fa-star"></i> ทักษะครบถ้วนตามความต้องการ</li>`;
+
+            // Render Strengths List
+            const strengthsWrap = document.getElementById('detStrengths');
+            strengthsWrap.innerHTML = cand.strengths && cand.strengths.length > 0
+                ? cand.strengths.map(st => `<li>${st}</li>`).join('')
+                : `<li>ไม่พบจุดเด่นที่เฉพาะเจาะจง</li>`;
+
+            // Render Weaknesses List
+            const weaknessesWrap = document.getElementById('detWeaknesses');
+            weaknessesWrap.innerHTML = cand.weaknesses && cand.weaknesses.length > 0
+                ? cand.weaknesses.map(w => `<li>${w}</li>`).join('')
+                : `<li>ไม่มีประเด็นที่น่าเป็นห่วง</li>`;
+
+            // If on mobile screen, copy details to mobile drawer and open
+            if (window.innerWidth < 768) {
+                openMobileDrawer();
+            }
+        }
+
+        // Local storage persisting
+        function saveCandidatesToLocalStorage() {
+            localStorage.setItem('screened_candidates', JSON.stringify(candidates));
+        }
+
+        // Clear State
+        function clearAllCandidates() {
+            if (confirm("ต้องการล้างประวัติผู้สมัครและคะแนนการคัดกรองทั้งหมดหรือไม่?")) {
+                candidates = [];
+                selectedCandidateId = null;
+                localStorage.removeItem('screened_candidates');
+                renderCandidateList();
+                showToast("ล้างประวัติเรียบร้อย", "รายชื่อผู้สมัครและคะแนนจัดอันดับทั้งหมดถูกล้างแล้ว", "info");
+            }
+        }
+
+        // Responsive Mobile Drawer Helpers
+        function openMobileDrawer() {
+            const drawer = document.getElementById('mobileDrawer');
+            const drawerContent = document.getElementById('mobileDrawerContent');
+            const mainContent = document.getElementById('candidateDetailReport');
+
+            drawerContent.innerHTML = mainContent.innerHTML;
+            drawer.classList.remove('hidden');
+        }
+
+        function closeMobileDrawer() {
+            document.getElementById('mobileDrawer').classList.add('hidden');
+        }
+
+        // Mock Automated Actions Flow
+        function triggerAction(actionType) {
+            const cand = candidates.find(c => c.id === selectedCandidateId);
+            if (!cand) return;
+
+            if (actionType === 'email') {
+                showToast(
+                    "ส่งเมลอัตโนมัติสำเร็จ", 
+                    `ระบบส่งเชิญชวนสัมภาษณ์งานไปยัง ${cand.candidateName} ทางอีเมลแล้ว!`, 
+                    "emerald"
+                );
+            } else if (actionType === 'calendar') {
+                showToast(
+                    "จองคิวสัมภาษณ์บน Google Calendar สำเร็จ", 
+                    `สร้าง Google Meet Link สำหรับคุยกับคุณ ${cand.candidateName} และส่งจดหมายนัดแล้ว`, 
+                    "info"
+                );
+            }
+        }
+    </script>
+</body>
+</html>

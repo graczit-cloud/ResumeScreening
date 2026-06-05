@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Resume Screening Hub - ระบบคัดกรองเรซูเม่ด้วย AI</title>
+    <title>AI Resume Screening Hub - Enterprise & PDPA Ready</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome for Premium Icons -->
@@ -12,6 +12,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <!-- PDF.js library to parse PDF files in the browser -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+    <!-- Supabase JS Client library for serverless cloud integration -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <style>
         body {
@@ -58,13 +60,13 @@
     <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur-md px-6 py-4 flex flex-wrap items-center justify-between gap-4 shrink-0">
         <div class="flex items-center gap-3">
             <div class="bg-gradient-to-tr from-brand-600 to-indigo-500 p-2.5 rounded-xl shadow-lg shadow-brand-500/20">
-                <i class="fa-solid fa-wand-magic-sparkles text-xl text-white"></i>
+                <i class="fa-solid fa-shield-halved text-xl text-white"></i>
             </div>
             <div>
                 <h1 class="text-xl font-bold bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent">
                     AI Resume Screening Hub
                 </h1>
-                <p class="text-xs text-slate-400">ระบบวิเคราะห์และจัดอันดับผู้สมัครด้วย Gemini AI (เดสก์ท็อปรันตรง 100%)</p>
+                <p class="text-xs text-slate-400">ระบบวิเคราะห์และจัดอันดับผู้สมัครด้วย Gemini AI + ระบบเก็บไฟล์คุ้มครองข้อมูล PDPA</p>
             </div>
         </div>
 
@@ -117,7 +119,7 @@
 
                 <div>
                     <label class="block text-[11px] text-slate-400 mb-1">ทักษะและเงื่อนไขสำคัญที่ต้องมี (ช่วยวิเคราะห์ความเข้ากันได้)</label>
-                    <textarea id="jdInput" rows="6" 
+                    <textarea id="jdInput" rows="5" 
                         placeholder="ระบุคุณสมบัติที่ต้องการ... เช่น&#10;- ประสบการณ์โรงงานอาหาร 5 ปีขึ้นไป&#10;- มีทักษะ GMP/HACCP&#10;- บริหารทีมงานอย่างน้อย 20 คน&#10;- สามารถใช้ Power BI และเข้าใจ OEE"
                         class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-xs text-slate-300 focus:outline-none focus:border-brand-500 resize-none font-sans"
                     ></textarea>
@@ -133,21 +135,57 @@
                     </div>
                 </div>
 
+                <!-- PDPA Consent Statement Checkbox -->
+                <div class="bg-slate-950/60 border border-slate-800 p-3 rounded-lg flex gap-2.5 items-start">
+                    <input type="checkbox" id="pdpaConsent" class="mt-1 w-4 h-4 rounded text-brand-600 focus:ring-brand-500 bg-slate-900 border-slate-800 cursor-pointer" onchange="toggleUploadAvailability()">
+                    <label for="pdpaConsent" class="text-[10px] text-slate-300 leading-relaxed cursor-pointer select-none">
+                        <strong>PDPA Consent:</strong> ฉันยืนยันว่าผู้สมัครรายนี้ได้ให้ความยินยอมในการประมวลผลและส่งต่อข้อมูลประวัติส่วนบุคคลเพื่อประโยชน์ในการสรรหาแล้ว
+                    </label>
+                </div>
+
                 <!-- Drag & Drop Area -->
-                <div id="dropZone" class="border-2 border-dashed border-slate-800 hover:border-brand-500/50 rounded-xl p-6 flex flex-col items-center justify-center text-center cursor-pointer transition-all bg-slate-950/30">
-                    <input type="file" id="fileInput" multiple accept=".pdf" class="hidden" onchange="handleFileSelect(event)">
+                <div id="dropZone" class="border-2 border-dashed border-slate-800 bg-slate-950/20 opacity-50 rounded-xl p-5 flex flex-col items-center justify-center text-center cursor-not-allowed transition-all">
+                    <input type="file" id="fileInput" multiple accept=".pdf" class="hidden" disabled onchange="handleFileSelect(event)">
                     <i class="fa-solid fa-file-pdf text-3xl text-slate-600 mb-2" id="uploadIcon"></i>
                     <p class="text-xs text-slate-300 font-medium mb-1">ลากไฟล์ PDF มาวางตรงนี้</p>
-                    <p class="text-[10px] text-slate-500">หรือคลิกเลือกไฟล์เพื่ออัปโหลด</p>
+                    <p class="text-[10px] text-slate-500">กรุณากดยินยอมข้อกำหนด PDPA ด้านบนก่อน</p>
                 </div>
 
                 <!-- Demo Actions for easy trial -->
                 <div class="mt-1 pt-3 border-t border-slate-800/60">
-                    <p class="text-[10px] text-slate-500 mb-2 text-center">หรือทดสอบการจัดอันดับได้อย่างรวดเร็ว</p>
+                    <p class="text-[10px] text-slate-500 mb-2 text-center">หรือทดสอบการทำงานของระบบแบบเร่งด่วน</p>
                     <button onclick="injectDemoCandidates()" class="w-full bg-slate-800/80 hover:bg-slate-800 text-slate-200 text-xs py-2 px-3 rounded-lg flex items-center justify-center gap-2 border border-slate-700/50 transition-all font-medium">
                         <i class="fa-solid fa-users text-brand-400"></i> โหลดผู้สมัครจำลอง 3 ท่าน
                     </button>
                 </div>
+            </div>
+
+            <!-- Step 3: Cloud Database Integration (Supabase) -->
+            <div class="bg-slate-900/60 border border-slate-800 rounded-xl p-4 flex flex-col gap-3">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <span class="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-400 text-xs font-bold">3</span>
+                        <h2 class="text-sm font-semibold text-slate-200">ระบบจัดเก็บฐานข้อมูล (Supabase)</h2>
+                    </div>
+                    <span id="dbStatusBadge" class="text-[9px] font-bold bg-amber-500/10 text-amber-400 px-2 py-0.5 rounded border border-amber-500/20">
+                        <i class="fa-solid fa-circle-dot mr-1 animate-pulse"></i>Offline (Local Only)
+                    </span>
+                </div>
+
+                <div class="space-y-2">
+                    <div>
+                        <label class="block text-[10px] text-slate-400 mb-1">Supabase API URL</label>
+                        <input type="text" id="dbUrlInput" placeholder="https://your-project.supabase.co" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1.5 text-[11px] text-slate-300 focus:outline-none focus:border-brand-500">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] text-slate-400 mb-1">Supabase Anon Key</label>
+                        <input type="password" id="dbKeyInput" placeholder="eyJhbGciOi..." class="w-full bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1.5 text-[11px] text-slate-300 focus:outline-none focus:border-brand-500">
+                    </div>
+                </div>
+
+                <button onclick="saveDatabaseConfig()" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs py-2 px-3 rounded-lg font-bold transition-all flex items-center justify-center gap-1.5">
+                    <i class="fa-solid fa-database"></i> เชื่อมต่อฐานข้อมูลคลาวด์
+                </button>
             </div>
 
             <!-- Processing Status / Stats -->
@@ -175,7 +213,7 @@
                 </div>
                 
                 <div class="flex items-center gap-2">
-                    <button onclick="clearAllCandidates()" class="text-xs text-rose-400 hover:text-rose-300 px-3 py-1.5 rounded-lg border border-rose-500/20 hover:bg-rose-500/10 transition-all flex items-center gap-1.5 font-medium">
+                    <button onclick="showClearHistoryModal()" class="text-xs text-rose-400 hover:text-rose-300 px-3 py-1.5 rounded-lg border border-rose-500/20 hover:bg-rose-500/10 transition-all flex items-center gap-1.5 font-medium">
                         <i class="fa-solid fa-trash-can"></i> ล้างประวัติทั้งหมด
                     </button>
                 </div>
@@ -193,7 +231,7 @@
                         </div>
                         <h3 class="text-sm font-semibold text-slate-300 mb-1">ยังไม่มีข้อมูลผู้สมัครที่นำเข้า</h3>
                         <p class="text-xs text-slate-500 max-w-xs leading-relaxed">
-                            เลือกตัวอย่าง JD แล้วลากไฟล์ PDF มาวาง หรือกดปุ่ม "โหลดผู้สมัครจำลอง" ด้านซ้าย เพื่อเริ่มใช้งานระบบคัดกรองทันที
+                            เลือกตัวอย่าง JD, กดยอมรับ PDPA, แล้วอัปโหลดเรซูเม่ (PDF) หรือใช้ผู้สมัครจำลอง เพื่อเริ่มวิเคราะห์คะแนนทันที
                         </p>
                     </div>
 
@@ -298,7 +336,7 @@
                         <!-- Automation Actions (Simulated) -->
                         <div class="border-t border-slate-800 pt-4 flex flex-col gap-3">
                             <h4 class="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
-                                <i class="fa-solid fa-bolt text-amber-400"></i> AI Recruiter Automation Hub (ทดสอบระบบนัดหมาย)
+                                <i class="fa-solid fa-bolt text-amber-400"></i> AI Recruiter Automation Hub (ระบบนัดหมาย)
                             </h4>
                             <div class="grid grid-cols-2 gap-2">
                                 <button onclick="triggerAction('email')" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 text-xs py-2 px-3 rounded-lg flex items-center justify-center gap-1.5 transition-all">
@@ -318,6 +356,23 @@
         </section>
 
     </main>
+
+    <!-- Custom Delete Confirmation Modal (Replaces unsafe confirm() method) -->
+    <div id="deleteModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-sm p-5 space-y-4">
+            <div class="flex items-center gap-3 text-rose-400">
+                <i class="fa-solid fa-triangle-exclamation text-2xl"></i>
+                <h3 class="font-bold text-sm text-slate-100">ต้องการล้างประวัติทั้งหมดใช่หรือไม่?</h3>
+            </div>
+            <p class="text-xs text-slate-400 leading-relaxed">
+                การดำเนินการนี้จะลบรายชื่อผู้สมัครและคะแนนการคัดกรองทั้งหมดรวมถึงข้อมูลในระบบคัดกรองเบื้องต้นออกจากระบบอย่างถาวร (ไม่กระทบไฟล์คลาวด์จริง)
+            </p>
+            <div class="flex justify-end gap-2 pt-2 border-t border-slate-800">
+                <button onclick="closeDeleteModal()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs py-2 px-4 rounded-lg font-medium">ยกเลิก</button>
+                <button onclick="confirmClearAllCandidates()" class="bg-rose-600 hover:bg-rose-500 text-white text-xs py-2 px-4 rounded-lg font-bold">ยืนยันการลบ</button>
+            </div>
+        </div>
+    </div>
 
     <!-- Notification Toast Element -->
     <div id="toast" class="fixed bottom-5 right-5 z-50 transform translate-y-10 opacity-0 bg-slate-900 border border-slate-800 shadow-xl rounded-xl p-4 flex items-center gap-3 transition-all duration-300 max-w-sm">
@@ -352,6 +407,7 @@
         let candidates = [];
         let selectedCandidateId = null;
         let apiKey = "";
+        let supabaseClient = null;
 
         // UI Init
         window.addEventListener('load', () => {
@@ -362,27 +418,58 @@
                 apiKey = savedKey;
             }
 
-            // Load saved state or empty
-            const savedCandidates = localStorage.getItem('screened_candidates');
-            if (savedCandidates) {
-                candidates = JSON.parse(savedCandidates);
-                renderCandidateList();
+            // Load saved Supabase config
+            const savedDbUrl = localStorage.getItem('supabase_db_url');
+            const savedDbKey = localStorage.getItem('supabase_db_key');
+            if (savedDbUrl && savedDbKey) {
+                document.getElementById('dbUrlInput').value = savedDbUrl;
+                document.getElementById('dbKeyInput').value = savedDbKey;
+                initializeSupabase(savedDbUrl, savedDbKey);
             }
 
-            // Setup Drag and Drop
+            // Load saved candidates state (fallback local history)
+            loadCandidatesFromLocal();
+
+            // Set Upload Drag & Drop functionality
+            setupDragAndDrop();
+        });
+
+        // Toggle PDPA Consent based drag/drop area activation
+        function toggleUploadAvailability() {
+            const consentChecked = document.getElementById('pdpaConsent').checked;
+            const dropZone = document.getElementById('dropZone');
+            const fileInput = document.getElementById('fileInput');
+
+            if (consentChecked) {
+                dropZone.className = "border-2 border-dashed border-slate-700 hover:border-brand-500/50 rounded-xl p-5 flex flex-col items-center justify-center text-center cursor-pointer transition-all bg-slate-950/30";
+                dropZone.querySelector('p').innerText = "ลากไฟล์ PDF มาวางตรงนี้";
+                dropZone.querySelectorAll('p')[1].innerText = "หรือคลิกเลือกไฟล์เพื่ออัปโหลด";
+                fileInput.disabled = false;
+            } else {
+                dropZone.className = "border-2 border-dashed border-slate-800 bg-slate-950/20 opacity-50 rounded-xl p-5 flex flex-col items-center justify-center text-center cursor-not-allowed transition-all";
+                dropZone.querySelector('p').innerText = "ลากไฟล์ PDF มาวางตรงนี้";
+                dropZone.querySelectorAll('p')[1].innerText = "กรุณากดยินยอมข้อกำหนด PDPA ด้านบนก่อน";
+                fileInput.disabled = true;
+            }
+        }
+
+        function setupDragAndDrop() {
             const dropZone = document.getElementById('dropZone');
             
             dropZone.addEventListener('dragover', (e) => {
                 e.preventDefault();
+                if (!document.getElementById('pdpaConsent').checked) return;
                 dropZone.classList.add('border-brand-500', 'bg-brand-500/5');
             });
 
             dropZone.addEventListener('dragleave', () => {
+                if (!document.getElementById('pdpaConsent').checked) return;
                 dropZone.classList.remove('border-brand-500', 'bg-brand-500/5');
             });
 
             dropZone.addEventListener('drop', (e) => {
                 e.preventDefault();
+                if (!document.getElementById('pdpaConsent').checked) return;
                 dropZone.classList.remove('border-brand-500', 'bg-brand-500/5');
                 const files = e.dataTransfer.files;
                 if (files.length > 0) {
@@ -391,11 +478,105 @@
             });
 
             dropZone.addEventListener('click', () => {
+                if (!document.getElementById('pdpaConsent').checked) return;
                 document.getElementById('fileInput').click();
             });
-        });
+        }
 
-        // Toggle Password view
+        // Initialize Supabase Connection
+        function initializeSupabase(url, key) {
+            try {
+                supabaseClient = supabase.createClient(url, key);
+                document.getElementById('dbStatusBadge').className = "text-[9px] font-bold bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded border border-emerald-500/20";
+                document.getElementById('dbStatusBadge').innerHTML = `<i class="fa-solid fa-cloud mr-1"></i>Connected`;
+                syncCandidatesFromSupabase();
+            } catch (err) {
+                console.error("Supabase Init Error: ", err);
+                showToast("การเชื่อมต่อฐานข้อมูลล้มเหลว", "กรุณาตรวจสอบ URL หรือ Key อีกครั้ง", "rose");
+            }
+        }
+
+        // Save Supabase Configuration locally
+        function saveDatabaseConfig() {
+            const url = document.getElementById('dbUrlInput').value.trim();
+            const key = document.getElementById('dbKeyInput').value.trim();
+
+            if (!url || !key) {
+                showToast("ข้อมูลไม่ครบถ้วน", "กรุณากรอกทั้ง URL และ Anon Key เพื่อทำการประมวลผล", "rose");
+                return;
+            }
+
+            localStorage.setItem('supabase_db_url', url);
+            localStorage.setItem('supabase_db_key', key);
+            initializeSupabase(url, key);
+            showToast("เชื่อมต่อข้อมูลเสร็จสิ้น", "ระบบเชื่อมโยงเข้าฐานข้อมูล Supabase แล้ว", "emerald");
+        }
+
+        // Sync Candidate Records from Supabase cloud database
+        async function syncCandidatesFromSupabase() {
+            if (!supabaseClient) return;
+
+            try {
+                const { data, error } = await supabaseClient
+                    .from('candidates')
+                    .select('*')
+                    .order('fitScore', { ascending: false });
+
+                if (error) throw error;
+
+                if (data && data.length > 0) {
+                    candidates = data;
+                    saveCandidatesToLocalStorageOnly();
+                    renderCandidateList();
+                }
+            } catch (err) {
+                console.error("Database Fetch Sync Error: ", err);
+                showToast("ดึงข้อมูลไม่สำเร็จ", "มีปัญหาระหว่างซิงค์ข้อมูลคลาวด์", "rose");
+            }
+        }
+
+        // Upload PDF File to Secure Storage and retrieve temporary Signed URL
+        async function uploadResumeToSecureCloud(file) {
+            if (!supabaseClient) return null;
+
+            try {
+                // Ensure unique name
+                const fileExt = file.name.split('.').pop();
+                const fileName = `resume_${Date.now()}_${Math.floor(Math.random() * 1000)}.${fileExt}`;
+                const filePath = `resumes/${fileName}`;
+
+                // Upload files to Private Bucket (Recommended: "candidate_resumes" bucket)
+                const { data, error } = await supabaseClient.storage
+                    .from('candidate_resumes')
+                    .upload(filePath, file, { cacheControl: '3600', upsert: false });
+
+                if (error) throw error;
+
+                // Return path to store in candidate row
+                return filePath;
+            } catch (err) {
+                console.error("Storage upload failed: ", err);
+                return null;
+            }
+        }
+
+        // Save Candidate to Supabase Cloud Database (PDPA Secure metadata only)
+        async function saveCandidateToSupabase(candidateRow) {
+            if (!supabaseClient) return;
+
+            try {
+                const { error } = await supabaseClient
+                    .from('candidates')
+                    .insert([candidateRow]);
+
+                if (error) throw error;
+            } catch (err) {
+                console.error("Insert Candidate Database Error: ", err);
+                showToast("บันทึกคลาวด์ไม่สำเร็จ", "ข้อมูลถูกเก็บในคอมเครื่องแทน", "rose");
+            }
+        }
+
+        // Toggle Password API Key visibility
         function toggleApiKeyVisibility() {
             const input = document.getElementById('apiKeyInput');
             const icon = document.getElementById('apiKeyEyeIcon');
@@ -416,7 +597,7 @@
             showToast("บันทึกคีย์เรียบร้อย", "ระบบได้รับการตั้งค่า Gemini API Key แล้ว", "emerald");
         }
 
-        // Toast Messages
+        // Toast Notifications
         function showToast(title, msg, type = 'emerald') {
             const toast = document.getElementById('toast');
             const iconWrap = document.getElementById('toastIcon');
@@ -446,7 +627,7 @@
             }, 4000);
         }
 
-        // Fill Demo JD
+        // Load Preset Job description
         function loadDemoJD() {
             document.getElementById('jobTitleInput').value = "Production Manager (โรงงานผลิตอาหารสำเร็จรูป)";
             document.getElementById('jdInput').value = 
@@ -460,7 +641,6 @@
             showToast("โหลดข้อกำหนดตัวอย่างสำเร็จ", "พร้อมใช้งานเพื่อเปรียบเทียบผู้สมัคร", "info");
         }
 
-        // Manual PDF File Selection
         function handleFileSelect(event) {
             const files = event.target.files;
             if (files.length > 0) {
@@ -468,9 +648,9 @@
             }
         }
 
-        // Core File Processing Handler
+        // Core File Processing Pipeline
         async function processUploadedFiles(files) {
-            // Check Job Description first
+            // Check JD Setup
             const jobTitle = document.getElementById('jobTitleInput').value.trim();
             const jdContent = document.getElementById('jdInput').value.trim();
 
@@ -493,30 +673,47 @@
 
             for (let i = 0; i < fileCount; i++) {
                 const file = files[i];
-                sMsg.innerText = `กำลังอ่านเนื้อหา PDF (${file.name})...`;
+                sMsg.innerText = `กำลังประมวลผลอ่านไฟล์ PDF (${file.name})...`;
                 pBar.style.width = `${((i) / fileCount) * 100}%`;
                 qProg.innerText = `${i}/${fileCount}`;
 
                 try {
-                    // Extract text from pdf in-browser
+                    // Extract text in-browser (keeps document private and secure)
                     const extractedText = await extractTextFromPDF(file);
                     
-                    sMsg.innerText = `กำลังส่งวิเคราะห์ผ่าน Gemini AI...`;
+                    sMsg.innerText = `ส่งวิเคราะห์เชิงลึกผ่าน Gemini AI...`;
 
-                    // Run analysis
+                    // Generate Gemini Evaluation response
                     let result;
                     if (apiKey) {
                         result = await callGeminiAI(extractedText, jobTitle, jdContent);
                     } else {
-                        // Safe simulated fallback with timeout to display UI processing
-                        await new Promise(resolve => setTimeout(resolve, 2000));
+                        await new Promise(resolve => setTimeout(resolve, 1500));
                         result = generateMockAnalysis(file.name, extractedText, jobTitle);
-                        showToast("เปิดใช้งาน Demo Mode", "วิเคราะห์ด้วยระบบจำลองเนื่องจากไม่ได้ใส่ Gemini API Key", "info");
                     }
 
-                    // Save candidate evaluation
+                    // Optional Secure Storage File Upload (PDPA Private Storage)
+                    if (supabaseClient) {
+                        sMsg.innerText = `กำลังอัปโหลดไฟล์จริงเก็บใน Cloud Storage...`;
+                        const storagePath = await uploadResumeToSecureCloud(file);
+                        if (storagePath) {
+                            result.secureResumePath = storagePath;
+                        }
+                    }
+
+                    // Append Row metadata
+                    result.id = 'cand_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
+                    result.createdAt = new Date().toISOString();
+
+                    // Push states
                     candidates.push(result);
-                    saveCandidatesToLocalStorage();
+                    saveCandidatesToLocalStorageOnly();
+                    
+                    // Direct Cloud database synchronization
+                    if (supabaseClient) {
+                        await saveCandidateToSupabase(result);
+                    }
+
                     successCount++;
 
                 } catch (err) {
@@ -525,7 +722,6 @@
                 }
             }
 
-            // Cleanup progress
             pBar.style.width = `100%`;
             qProg.innerText = `${fileCount}/${fileCount}`;
             sMsg.innerText = `เสร็จสิ้นกระบวนการวิเคราะห์!`;
@@ -533,12 +729,12 @@
             setTimeout(() => {
                 pPanel.classList.add('hidden');
                 renderCandidateList();
-            }, 1500);
+            }, 1200);
 
-            showToast("ประมวลผลเสร็จสิ้น", `คัดกรองเรซูเม่เสร็จเรียบร้อย ${successCount} รายการ`, "emerald");
+            showToast("ประมวลผลเสร็จสิ้น", `คัดกรองเรซูเม่และวิเคราะห์เสร็จสิ้น ${successCount} รายการ`, "emerald");
         }
 
-        // Read text from PDF inside browser
+        // Parser for PDF text content inside browser
         async function extractTextFromPDF(file) {
             try {
                 const arrayBuffer = await file.arrayBuffer();
@@ -560,7 +756,7 @@
             }
         }
 
-        // Live Gemini API Integration with Retry and Schema Validation
+        // API Call to Gemini with strict Schema Validation
         async function callGeminiAI(resumeText, jobTitle, jdText) {
             const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
             
@@ -571,11 +767,11 @@ Be lenient with terminology; understand context (e.g. if a candidate decreased c
 
 Return ONLY a single valid JSON object following this JSON schema:
 {
-  "candidateName": "String (Extract the applicant name, if unknown or image, invent a default title case name)",
+  "candidateName": "String (Extract applicant name, if unknown, generate a default thai name)",
   "currentTitle": "String (Current or most recent job title)",
-  "fitScore": Integer (Score out of 100 based on exact criteria matching),
+  "fitScore": Integer (Score out of 100 based on criteria matching),
   "matchPercentage": Integer (Suitability rate 0-100),
-  "skillsFound": ["String", "String", ... (Maximum 6 skills from JD that match Resume context)],
+  "skillsFound": ["String", "String", ... (Max 6 skills found in Resume context)],
   "skillsMissing": ["String", "String", ... (Key skills mentioned in JD but missing/weak in Resume)],
   "summary": "String (An Executive Summary in Thai language explaining key fit, maximum 2-3 lines)",
   "strengths": ["String", "String", ... (Up to 3 high value pros of candidate in Thai)],
@@ -597,8 +793,8 @@ Return ONLY a single valid JSON object following this JSON schema:
                 }
             };
 
-            // Implementation of Exponential Backoff as per instructions
-            let attempts = 5;
+            // Backoff logic
+            let attempts = 4;
             let delay = 1000;
             
             for (let attempt = 1; attempt <= attempts; attempt++) {
@@ -609,39 +805,31 @@ Return ONLY a single valid JSON object following this JSON schema:
                         body: JSON.stringify(payload)
                     });
 
-                    if (!response.ok) {
-                        throw new Error(`API returned HTTP Status: ${response.status}`);
-                    }
+                    if (!response.ok) throw new Error(`API Status: ${response.status}`);
 
                     const data = await response.json();
                     const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
                     if (text) {
-                        const parsed = JSON.parse(text);
-                        parsed.id = 'cand_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
-                        return parsed;
+                        return JSON.parse(text);
                     }
-                    throw new Error("No payload found in Response");
+                    throw new Error("No response output");
                 } catch (err) {
-                    if (attempt === attempts) {
-                        throw err; // Fail after maximum retries
-                    }
+                    if (attempt === attempts) throw err;
                     await new Promise(resolve => setTimeout(resolve, delay));
-                    delay *= 2; // Exponential backoff (1s, 2s, 4s, 8s...)
+                    delay *= 2;
                 }
             }
         }
 
-        // Mock AI generator for immediate trial
+        // Mock generator for rapid offline demonstration
         function generateMockAnalysis(fileName, text, jobTitle) {
-            // Pick mock scenarios
-            const names = ["ดนัย ชัยเจริญโชค", "นพดล เกียรติวรวงศ์", "พัชรี สุขสมบูรณ์", "สมเกียรติ ยิ้มย่อง"];
+            const names = ["นภดล เกียรติเกรียงไกร", "นิสา ทวีโชคลาภ", "ณัฐพล พัชรวงศ์วิทยา", "วรรณิกา อริยวงศ์"];
             const rName = names[Math.floor(Math.random() * names.length)];
-            const matchPercent = Math.floor(Math.random() * 41) + 50; // 50-90
+            const matchPercent = Math.floor(Math.random() * 41) + 50; 
             
             return {
-                id: 'cand_demo_' + Date.now() + '_' + Math.floor(Math.random() * 1000),
                 candidateName: rName,
-                currentTitle: "Assistant Production Manager / Shift Lead",
+                currentTitle: "Assistant Production Manager / Shift Supervisor",
                 fitScore: Math.round(matchPercent * 0.95),
                 matchPercentage: matchPercent,
                 skillsFound: ["ประสบการณ์โรงงานอาหาร", "GMP/HACCP", "บริหารทีมปฏิบัติการ 30 คน"],
@@ -660,7 +848,7 @@ Return ONLY a single valid JSON object following this JSON schema:
             };
         }
 
-        // Inject 3 Pre-screened Demo Candidates instantly
+        // Inject 3 Demo candidates instantly
         function injectDemoCandidates() {
             const demoPool = [
                 {
@@ -724,18 +912,18 @@ Return ONLY a single valid JSON object following this JSON schema:
             ];
 
             candidates = [...candidates, ...demoPool];
-            saveCandidatesToLocalStorage();
+            saveCandidatesToLocalStorageOnly();
             renderCandidateList();
             showToast("เพิ่มข้อมูลจำลองแล้ว", "เพิ่มผู้สมัครตัวอย่าง 3 ท่านเสร็จสิ้น (เรียงลำดับตามคะแนน)", "emerald");
         }
 
-        // Render Cards List based on state sorted by Fit Score
+        // Render Candidates Table
         function renderCandidateList() {
             const listWrap = document.getElementById('candidateCardsList');
             const emptyState = document.getElementById('emptyState');
             const countLabel = document.getElementById('candidateCount');
 
-            // Sort candidates by match rate or score descending
+            // Sort by Match FitScore descending
             candidates.sort((a, b) => b.fitScore - a.fitScore);
 
             countLabel.innerText = `${candidates.length} รายชื่อ`;
@@ -757,7 +945,6 @@ Return ONLY a single valid JSON object following this JSON schema:
                 
                 const isSelected = selectedCandidateId === cand.id;
                 
-                // Set match badge colors
                 let scoreBg = "bg-rose-500/10 text-rose-400 border-rose-500/20";
                 if (cand.fitScore >= 80) {
                     scoreBg = "bg-emerald-500/10 text-emerald-400 border-emerald-500/20";
@@ -791,7 +978,7 @@ Return ONLY a single valid JSON object following this JSON schema:
 
                     <div class="flex items-center justify-between text-[9px] pt-1 border-t border-slate-800/40">
                         <span class="flex items-center gap-1 text-slate-400">
-                            <i class="fa-solid fa-lightbulb text-brand-400"></i> ทักษะครบ: ${cand.skillsFound.length}
+                            <i class="fa-solid fa-lightbulb text-brand-400"></i> ทักษะครบ: ${cand.skillsFound ? cand.skillsFound.length : 0}
                         </span>
                         <span class="font-semibold text-brand-300">
                             ${cand.decision}
@@ -802,23 +989,21 @@ Return ONLY a single valid JSON object following this JSON schema:
                 listWrap.appendChild(card);
             });
 
-            // Automatically select first item if none is selected
+            // Auto-select first item if exists
             if (!selectedCandidateId && candidates.length > 0) {
                 selectCandidate(candidates[0].id);
             }
         }
 
-        // Display Detailed Evaluation on right side panel
-        function selectCandidate(id) {
+        // Display Candidate Details
+        async function selectCandidate(id) {
             selectedCandidateId = id;
-            
-            // Highlight selected card
             renderCandidateList();
 
             const cand = candidates.find(c => c.id === id);
             if (!cand) return;
 
-            // Populate Report
+            // Populate Card View Report
             document.getElementById('detailPlaceholder').classList.add('hidden');
             document.getElementById('candidateDetailReport').classList.remove('hidden');
             document.getElementById('detailPanel').classList.remove('hidden');
@@ -830,53 +1015,116 @@ Return ONLY a single valid JSON object following this JSON schema:
             document.getElementById('detMatchBar').style.width = `${cand.matchPercentage}%`;
             document.getElementById('detSummary').innerText = `"${cand.summary}"`;
 
-            // Render Skills Found Badges
+            // Skills Found
             const foundWrap = document.getElementById('detSkillsFound');
-            foundWrap.innerHTML = cand.skillsFound.length > 0 
+            foundWrap.innerHTML = cand.skillsFound && cand.skillsFound.length > 0 
                 ? cand.skillsFound.map(s => `<li class="bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-medium px-2 py-0.5 rounded-full"><i class="fa-solid fa-check mr-0.5"></i> ${s}</li>`).join('')
-                : `<li class="text-[10px] text-slate-500">ไม่พบทักษะเด่นที่สอดคล้อง</li>`;
+                : `<li class="text-[10px] text-slate-500">ไม่พบทักษะที่เกี่ยวข้อง</li>`;
 
-            // Render Skills Missing Badges
+            // Skills Missing
             const missingWrap = document.getElementById('detSkillsMissing');
-            missingWrap.innerHTML = cand.skillsMissing.length > 0 
+            missingWrap.innerHTML = cand.skillsMissing && cand.skillsMissing.length > 0 
                 ? cand.skillsMissing.map(s => `<li class="bg-rose-500/10 border border-rose-500/20 text-rose-400 text-[10px] font-medium px-2 py-0.5 rounded-full"><i class="fa-solid fa-xmark mr-0.5"></i> ${s}</li>`).join('')
-                : `<li class="text-[10px] text-emerald-400 font-semibold"><i class="fa-solid fa-star"></i> ทักษะครบถ้วนตามความต้องการ</li>`;
+                : `<li class="text-[10px] text-emerald-400 font-semibold"><i class="fa-solid fa-star"></i> ทักษะครบตาม JD</li>`;
 
-            // Render Strengths List
+            // Strengths List
             const strengthsWrap = document.getElementById('detStrengths');
             strengthsWrap.innerHTML = cand.strengths && cand.strengths.length > 0
                 ? cand.strengths.map(st => `<li>${st}</li>`).join('')
-                : `<li>ไม่พบจุดเด่นที่เฉพาะเจาะจง</li>`;
+                : `<li>ไม่ระบุ</li>`;
 
-            // Render Weaknesses List
+            // Weaknesses List
             const weaknessesWrap = document.getElementById('detWeaknesses');
             weaknessesWrap.innerHTML = cand.weaknesses && cand.weaknesses.length > 0
                 ? cand.weaknesses.map(w => `<li>${w}</li>`).join('')
-                : `<li>ไม่มีประเด็นที่น่าเป็นห่วง</li>`;
+                : `<li>ไม่พบข้อกังวล</li>`;
 
-            // If on mobile screen, copy details to mobile drawer and open
+            // Secure Resume URL retrieval for preview
+            if (cand.secureResumePath && supabaseClient) {
+                // If there's an active storage path, you can request a temporary safe Signed URL (PDPA Compliance)
+                try {
+                    const { data, error } = await supabaseClient.storage
+                        .from('candidate_resumes')
+                        .createSignedUrl(cand.secureResumePath, 300); // URL expires in 5 minutes
+
+                    if (!error && data) {
+                        // Append download or preview link inside report UI as safe reference
+                        const previewLinkHtml = `
+                            <div class="mt-2 text-[10px] text-slate-400">
+                                <a href="${data.signedUrl}" target="_blank" class="text-brand-400 hover:underline font-bold">
+                                    <i class="fa-solid fa-file-shield mr-1"></i> คลิกดูไฟล์ Resume จริงแบบปลอดภัย (ลิงก์มีอายุ 5 นาที)
+                                </a>
+                            </div>
+                        `;
+                        const linkContainerId = 'detSecurePreviewLink';
+                        let linkContainer = document.getElementById(linkContainerId);
+                        if (!linkContainer) {
+                            linkContainer = document.createElement('div');
+                            linkContainer.id = linkContainerId;
+                            document.getElementById('detName').parentNode.appendChild(linkContainer);
+                        }
+                        linkContainer.innerHTML = previewLinkHtml;
+                    }
+                } catch(e) {
+                    console.error("Signed URL retrieval failed: ", e);
+                }
+            } else {
+                const linkContainer = document.getElementById('detSecurePreviewLink');
+                if (linkContainer) linkContainer.innerHTML = "";
+            }
+
             if (window.innerWidth < 768) {
                 openMobileDrawer();
             }
         }
 
-        // Local storage persisting
-        function saveCandidatesToLocalStorage() {
-            localStorage.setItem('screened_candidates', JSON.stringify(candidates));
-        }
-
-        // Clear State
-        function clearAllCandidates() {
-            if (confirm("ต้องการล้างประวัติผู้สมัครและคะแนนการคัดกรองทั้งหมดหรือไม่?")) {
-                candidates = [];
-                selectedCandidateId = null;
-                localStorage.removeItem('screened_candidates');
+        // Local Storage State Persisting
+        function loadCandidatesFromLocal() {
+            const savedCandidates = localStorage.getItem('screened_candidates');
+            if (savedCandidates) {
+                candidates = JSON.parse(savedCandidates);
                 renderCandidateList();
-                showToast("ล้างประวัติเรียบร้อย", "รายชื่อผู้สมัครและคะแนนจัดอันดับทั้งหมดถูกล้างแล้ว", "info");
             }
         }
 
-        // Responsive Mobile Drawer Helpers
+        function saveCandidatesToLocalStorageOnly() {
+            localStorage.setItem('screened_candidates', JSON.stringify(candidates));
+        }
+
+        // Safer UI custom delete modal handlers (Replaces window.confirm)
+        function showClearHistoryModal() {
+            document.getElementById('deleteModal').classList.remove('hidden');
+        }
+
+        function closeDeleteModal() {
+            document.getElementById('deleteModal').classList.add('hidden');
+        }
+
+        async function confirmClearAllCandidates() {
+            // Delete Supabase records if connected
+            if (supabaseClient) {
+                try {
+                    const { error } = await supabaseClient
+                        .from('candidates')
+                        .delete()
+                        .neq('id', 'placeholder_id'); // Delete all rows
+                    
+                    if (error) throw error;
+                } catch (e) {
+                    console.error("Could not delete from Supabase: ", e);
+                    showToast("ไม่สามารถเคลียร์ข้อมูลบนคลาวด์ได้", "เกิดข้อผิดพลาดในการล้างตาราง", "rose");
+                }
+            }
+
+            candidates = [];
+            selectedCandidateId = null;
+            localStorage.removeItem('screened_candidates');
+            renderCandidateList();
+            closeDeleteModal();
+            showToast("ล้างประวัติเรียบร้อย", "รายชื่อและคะแนนทั้งหมดถูกล้างแล้ว", "info");
+        }
+
+        // Mobile drawer navigation helpers
         function openMobileDrawer() {
             const drawer = document.getElementById('mobileDrawer');
             const drawerContent = document.getElementById('mobileDrawerContent');
@@ -890,21 +1138,21 @@ Return ONLY a single valid JSON object following this JSON schema:
             document.getElementById('mobileDrawer').classList.add('hidden');
         }
 
-        // Mock Automated Actions Flow
+        // Mock Recruiter Hub Action Dispatcher
         function triggerAction(actionType) {
             const cand = candidates.find(c => c.id === selectedCandidateId);
             if (!cand) return;
 
             if (actionType === 'email') {
                 showToast(
-                    "ส่งเมลอัตโนมัติสำเร็จ", 
-                    `ระบบส่งเชิญชวนสัมภาษณ์งานไปยัง ${cand.candidateName} ทางอีเมลแล้ว!`, 
+                    "ส่งเมลเรียบร้อย (จำลอง)", 
+                    `ส่งหนังสือเชิญนัดหมายสัมภาษณ์ไปยัง ${cand.candidateName} แล้ว!`, 
                     "emerald"
                 );
             } else if (actionType === 'calendar') {
                 showToast(
-                    "จองคิวสัมภาษณ์บน Google Calendar สำเร็จ", 
-                    `สร้าง Google Meet Link สำหรับคุยกับคุณ ${cand.candidateName} และส่งจดหมายนัดแล้ว`, 
+                    "เชื่อมโยงสำเร็จ (จำลอง)", 
+                    `จองคิวสัมภาษณ์และสร้าง Meet URL สำหรับคุยกับคุณ ${cand.candidateName} บนปฏิทินแล้ว`, 
                     "info"
                 );
             }

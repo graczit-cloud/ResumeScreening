@@ -362,14 +362,14 @@
                         <!-- Automation Actions (Simulated) -->
                         <div class="border-t border-slate-800 pt-4 flex flex-col gap-3">
                             <h4 class="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
-                                <i class="fa-solid fa-bolt text-amber-400"></i> AI Recruiter Automation Hub (ระบบนัดหมาย)
+                                <i class="fa-solid fa-bolt text-amber-400"></i> AI Recruiter Automation Hub (ระบบนัดหมายผ่าน MS Outlook)
                             </h4>
                             <div class="grid grid-cols-2 gap-2">
-                                <button onclick="triggerAction('email')" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 text-xs py-2 px-3 rounded-lg flex items-center justify-center gap-1.5 transition-all">
-                                    <i class="fa-solid fa-paper-plane text-brand-400"></i> ส่งเมลนัดสัมภาษณ์
+                                <button onclick="triggerAction('email')" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 text-xs py-2.5 px-3 rounded-lg flex items-center justify-center gap-1.5 transition-all shadow-md">
+                                    <i class="fa-solid fa-envelope text-brand-400"></i> เปิดแบบร่างเมลบน Outlook
                                 </button>
-                                <button onclick="triggerAction('calendar')" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 text-xs py-2 px-3 rounded-lg flex items-center justify-center gap-1.5 transition-all">
-                                    <i class="fa-solid fa-calendar-days text-indigo-400"></i> สร้างนัดบน Calendar
+                                <button onclick="triggerAction('calendar')" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 text-xs py-2.5 px-3 rounded-lg flex items-center justify-center gap-1.5 transition-all shadow-md">
+                                    <i class="fa-solid fa-calendar-check text-indigo-400"></i> สร้างนัดบน Outlook Calendar
                                 </button>
                             </div>
                         </div>
@@ -1409,21 +1409,98 @@ Return ONLY a single valid JSON object following this JSON schema:
             document.getElementById('mobileDrawer').classList.add('hidden');
         }
 
-        // Mock Recruiter Hub Action Dispatcher
+        // Action Hub Implementation (Optimized for Microsoft Outlook Desktop & Outlook Calendar)
         function triggerAction(actionType) {
             const cand = candidates.find(c => c.id === selectedCandidateId);
             if (!cand) return;
 
+            const jobTitle = document.getElementById('jobTitleInput').value.trim() || "ตำแหน่งงานที่เปิดรับ";
+
             if (actionType === 'email') {
+                const isPass = cand.decision.includes('ผ่านการกรอง');
+                const subject = encodeURIComponent(`[TalentAI] แจ้งผลการพิจารณาคุณสมบัติเบื้องต้น - ตำแหน่ง ${jobTitle}`);
+                
+                let body = "";
+                if (isPass) {
+                    body = `เรียนคุณ ${cand.candidateName},\r\n\r\n` +
+                           `ทางแผนกทรัพยากรบุคคลได้พิจารณาประวัติการทำงาน (Resume) ของคุณสำหรับตำแหน่ง ${jobTitle} เรียบร้อยแล้ว\r\n\r\n` +
+                           `ทางเรามีความยินดีเป็นอย่างยิ่งที่จะแจ้งให้ทราบว่า คุณสมบัติ ประสบการณ์ และทักษะของคุณมีความสอดคล้องอย่างมากตามที่ทีมงานต้องการ (คะแนนความเหมาะสมโดยระบบประเมินผล: ${cand.fitScore}%)\r\n\r\n` +
+                           `เราใคร่ขอเรียนเชิญคุณเข้าร่วมการสัมภาษณ์รอบแรกผ่านช่องทางออนไลน์ (Online Interview) ร่วมกับทีมผู้บริหาร\r\n\r\n` +
+                           `หากคุณสะดวกเข้าร่วม กรุณาตอบกลับอีเมลฉบับนี้เพื่อแจ้งวันและช่วงเวลาที่คุณสะดวกในช่วงสัปดาห์หน้า\r\n\r\n` +
+                           `ขอแสดงความนับถือ,\r\n` +
+                           `แผนกทรัพยากรบุคคล (HR Team)`;
+                } else {
+                    body = `เรียนคุณ ${cand.candidateName},\r\n\r\n` +
+                           `ทางบริษัทได้รับข้อมูลสมัครงานและประวัติของคุณสำหรับตำแหน่ง ${jobTitle} เป็นที่เรียบร้อยแล้ว และขอขอบคุณเป็นอย่างยิ่งที่คุณให้ความสนใจในองค์กรของเรา\r\n\r\n` +
+                           `จากการตรวจสอบและประเมินคุณสมบัติเบื้องต้นอย่างละเอียด ทางเราพบว่าคุณสมบัติโดยรวมของคุณมีความโดดเด่นและมีคุณประโยชน์ต่อสายงาน อย่างไรก็ตาม เนื่องจากมีข้อกำหนดด้านทักษะเฉพาะบางประการที่เรากำลังต้องการเป็นพิเศษในรอบนี้ ซึ่งประวัติของคุณยังไม่สอดคล้องกับหน้างานหลักอย่างสมบูรณ์\r\n\r\n` +
+                           `ทางเราจึงมีความจำเป็นต้องแจ้งว่ายังไม่สามารถรับพิจารณาใบสมัครของคุณเพื่อก้าวสู่ขั้นตอนถัดไปในขณะนี้ โดยเราจะขอจัดเก็บประวัติของคุณไว้ในสารบบฐานข้อมูลผู้สมัครอย่างปลอดภัย หากมีโอกาสงานที่สอดคล้องกับคุณสมบัติของคุณในอนาคต ทางเราจะติดต่อกลับไปทันที\r\n\r\n` +
+                           `ขอแสดงความนับถือ,\r\n` +
+                           `แผนกทรัพยากรบุคคล (HR Team)`;
+                }
+                
+                // Trigger Outlook client via Mailto with clean URL formatting
+                const mailtoUrl = `mailto:?subject=${subject}&body=${encodeURIComponent(body)}`;
+                window.location.href = mailtoUrl;
+                
                 showToast(
-                    "ส่งเมลเรียบร้อย (จำลอง)", 
-                    `ส่งหนังสือเชิญนัดหมายสัมภาษณ์ไปยัง ${cand.candidateName} แล้ว!`, 
+                    "กำลังเปิด Microsoft Outlook", 
+                    `ร่างจดหมายอีเมลเตรียมพร้อมให้คุณใน Outlook สำหรับ ${cand.candidateName} แล้ว`, 
                     "emerald"
                 );
             } else if (actionType === 'calendar') {
+                const title = `นัดหมายสัมภาษณ์ตำแหน่ง ${jobTitle} - คุณ ${cand.candidateName}`;
+                
+                // Construct clean metadata text strings for .ics format standard
+                const rawSummary = cand.summary ? cand.summary.replace(/\r?\n/g, ' ') : 'ไม่พบข้อความสรุป';
+                const strengthsText = cand.strengths ? cand.strengths.map(s => ` - ${s}`).join('\\n') : 'ไม่ระบุ';
+                const weaknessesText = cand.weaknesses ? cand.weaknesses.map(w => ` - ${w}`).join('\\n') : 'ไม่ระบุ';
+
+                const description = `--- บันทึกข้อมูลคัดกรองเบื้องต้นโดย AI (Match Rate: ${cand.fitScore}%) ---\\n` +
+                                    `สรุปประวัติโดยย่อ: ${rawSummary}\\n\\n` +
+                                    `จุดเด่นที่น่าสนใจ:\\n${strengthsText}\\n\\n` +
+                                    `ข้อสังเกตที่ควรสอบถามเพิ่มเติมในการสัมภาษณ์:\\n${weaknessesText}\\n\\n` +
+                                    `ระบบประมวลผลอัตโนมัติผ่าน AI Resume Screening Hub`;
+
+                // Set a default schedule date of 3 days later at 10:00 AM
+                const targetDate = new Date();
+                targetDate.setDate(targetDate.getDate() + 3);
+                const year = targetDate.getFullYear();
+                const month = String(targetDate.getMonth() + 1).padStart(2, '0');
+                const day = String(targetDate.getDate()).padStart(2, '0');
+                
+                const dtStart = `${year}${month}${day}T100000`;
+                const dtEnd = `${year}${month}${day}T110000`;
+
+                // Generate RFC 5545 clean iCalendar schema payload optimized specifically for Microsoft Outlook
+                const icsContent = [
+                    "BEGIN:VCALENDAR",
+                    "VERSION:2.0",
+                    "PRODID:-//AI Resume Screening Hub//TH",
+                    "CALSCALE:GREGORIAN",
+                    "METHOD:PUBLISH",
+                    "BEGIN:VEVENT",
+                    `SUMMARY:${title}`,
+                    `DESCRIPTION:${description}`,
+                    `DTSTART;TZID=Asia/Bangkok:${dtStart}`,
+                    `DTEND;TZID=Asia/Bangkok:${dtEnd}`,
+                    "STATUS:CONFIRMED",
+                    "SEQUENCE:0",
+                    "END:VEVENT",
+                    "END:VCALENDAR"
+                ].join("\r\n");
+
+                // Download the clean .ics file directly to browser downloads directory
+                const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8;' });
+                const link = document.createElement("a");
+                link.href = URL.createObjectURL(blob);
+                link.setAttribute("download", `interview_${cand.candidateName.replace(/\s+/g, '_')}.ics`);
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                
                 showToast(
-                    "เชื่อมโยงสำเร็จ (จำลอง)", 
-                    `จองคิวสัมภาษณ์และสร้าง Meet URL สำหรับคุยกับคุณ ${cand.candidateName} บนปฏิทินแล้ว`, 
+                    "สร้างไฟล์ปฏิทินสำเร็จ!", 
+                    "ดับเบิ้ลคลิกไฟล์ที่ดาวน์โหลดเพื่อเพิ่มนัดหมายและรายละเอียดวิเคราะห์ลง Outlook ของคุณได้ทันที", 
                     "info"
                 );
             }

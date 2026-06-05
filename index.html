@@ -60,18 +60,19 @@
     <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur-md px-6 py-4 flex flex-wrap items-center justify-between gap-4 shrink-0">
         <div class="flex items-center gap-3">
             <div class="bg-gradient-to-tr from-brand-600 to-indigo-500 p-2.5 rounded-xl shadow-lg shadow-brand-500/20">
-                <i class="fa-solid fa-shield-halved text-xl text-white"></i>
+                <i class="fa-solid fa-wand-magic-sparkles text-xl text-white"></i>
             </div>
             <div>
                 <h1 class="text-xl font-bold bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent">
                     AI Resume Screening Hub
                 </h1>
                 <div class="flex items-center gap-2 mt-0.5">
-                    <span id="dbStatusBadge" class="text-[9px] font-bold bg-slate-800 text-slate-400 px-2 py-0.5 rounded border border-slate-700/60 flex items-center gap-1">
-                        <i class="fa-solid fa-laptop-code text-indigo-400"></i> โหมดประมวลผลในเครื่อง (Local Mode)
+                    <!-- Dynamic Live/Demo Mode Status Badge -->
+                    <span id="geminiStatusBadge" class="text-[9px] font-bold bg-amber-500/10 text-amber-400 px-2 py-0.5 rounded border border-amber-500/20 flex items-center gap-1">
+                        <i class="fa-solid fa-triangle-exclamation"></i> โหมดจำลอง (Demo Mode - โปรดใส่ API Key)
                     </span>
                     <span class="text-[10px] text-emerald-400 font-semibold flex items-center gap-0.5">
-                        <i class="fa-solid fa-circle-check"></i> ปลอดภัยตามหลัก PDPA 100%
+                        <i class="fa-solid fa-circle-check"></i> ดำเนินการในเครื่องปลอดภัย (PDPA 100%)
                     </span>
                 </div>
             </div>
@@ -85,23 +86,23 @@
                     <i class="fa-solid fa-key text-xs"></i>
                 </span>
                 <input type="password" id="apiKeyInput" 
-                    placeholder="ใส่ Gemini API Key (ถ้ามี)" 
-                    class="bg-slate-950 border border-slate-800 rounded-lg pl-9 pr-8 py-2 text-xs text-slate-300 focus:outline-none focus:border-brand-500 w-48 transition-all"
+                    placeholder="ใส่ Gemini API Key ของคุณที่นี่" 
+                    class="bg-slate-950 border border-slate-800 rounded-lg pl-9 pr-8 py-2 text-xs text-slate-300 focus:outline-none focus:border-brand-500 w-52 transition-all"
                 />
                 <button onclick="toggleApiKeyVisibility()" class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-500 hover:text-slate-300">
                     <i id="apiKeyEyeIcon" class="fa-solid fa-eye text-xs"></i>
                 </button>
             </div>
-            <button onclick="saveApiKey()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs px-3 py-2 rounded-lg font-medium transition-all">
-                บันทึก Key
+            <button onclick="saveApiKey()" class="bg-brand-600 hover:bg-brand-500 text-white text-xs px-3.5 py-2 rounded-lg font-bold transition-all shadow-md shadow-brand-600/15">
+                เปิดใช้งานจริง
             </button>
             <a href="https://aistudio.google.com/" target="_blank" class="text-xs text-brand-400 hover:text-brand-300 flex items-center gap-1 mr-2">
-                <i class="fa-solid fa-circle-info"></i> รับคีย์ฟรี
+                <i class="fa-solid fa-circle-info"></i> รับคีย์ฟรีที่นี่
             </a>
 
-            <!-- Cloud Connection Trigger Button (Optional Modal Popup) -->
-            <button onclick="openCloudConfigModal()" class="bg-gradient-to-r from-slate-900 to-slate-800 hover:from-slate-800 hover:to-slate-700 text-slate-300 hover:text-white text-xs px-3.5 py-2 rounded-lg font-semibold border border-slate-700 transition-all flex items-center gap-1.5 shadow-md">
-                <i class="fa-solid fa-cloud text-brand-400"></i> เชื่อมต่อ Supabase
+            <!-- Small Advanced Cloud config toggle -->
+            <button onclick="openCloudConfigModal()" class="text-slate-500 hover:text-slate-300 text-xs p-2 rounded-lg transition-all" title="ตั้งค่าระบบฐานข้อมูลคลาวด์เพิ่มเติม (ไม่บังคับ)">
+                <i class="fa-solid fa-gear text-sm"></i>
             </button>
         </div>
     </header>
@@ -147,11 +148,17 @@
                     </div>
                 </div>
 
+                <!-- API Key Warning in file zone if key is missing -->
+                <div id="keyMissingAlert" class="bg-amber-500/10 border border-amber-500/20 p-2.5 rounded-lg text-[11px] text-amber-300 flex gap-2">
+                    <i class="fa-solid fa-triangle-exclamation mt-0.5 shrink-0"></i>
+                    <span>ระบบตรวจไม่พบ API Key ในเครื่อง ในระหว่างนี้ระบบจะใช้ผู้สมัครแบบสุ่มจำลองแทนการอ่านไฟล์จริง</span>
+                </div>
+
                 <!-- PDPA Consent Statement Checkbox -->
                 <div class="bg-slate-950/60 border border-slate-800 p-3 rounded-lg flex gap-2.5 items-start">
                     <input type="checkbox" id="pdpaConsent" class="mt-1 w-4 h-4 rounded text-brand-600 focus:ring-brand-500 bg-slate-900 border-slate-800 cursor-pointer" onchange="toggleUploadAvailability()">
                     <label for="pdpaConsent" class="text-[10px] text-slate-300 leading-relaxed cursor-pointer select-none">
-                        <strong>PDPA Consent:</strong> ฉันยืนยันว่าผู้สมัครรายนี้ได้ให้ความยินยอมในการประมวลผลและส่งต่อข้อมูลประวัติส่วนบุคคลเพื่อประโยชน์ในการสรรหาแล้ว
+                        <strong>PDPA Consent:</strong> ฉันยืนยันว่าผู้สมัครเหล่านี้ได้ให้ความยินยอมโดยชัดแจ้งในการประมวลผลข้อมูลส่วนบุคคลในระบบคัดกรองอัตโนมัติแล้ว
                     </label>
                 </div>
 
@@ -165,7 +172,7 @@
 
                 <!-- Demo Actions for easy trial -->
                 <div class="mt-1 pt-3 border-t border-slate-800/60">
-                    <p class="text-[10px] text-slate-500 mb-2 text-center">หรือทดสอบการทำงานของระบบแบบเร่งด่วน</p>
+                    <p class="text-[10px] text-slate-500 mb-2 text-center font-medium text-slate-400">หรือต้องการทดสอบอินเตอร์เฟสแบบเร่งด่วน</p>
                     <button onclick="injectDemoCandidates()" class="w-full bg-slate-800/80 hover:bg-slate-800 text-slate-200 text-xs py-2 px-3 rounded-lg flex items-center justify-center gap-2 border border-slate-700/50 transition-all font-medium">
                         <i class="fa-solid fa-users text-brand-400"></i> โหลดผู้สมัครจำลอง 3 ท่าน
                     </button>
@@ -188,8 +195,8 @@
             <div class="bg-slate-950/40 border border-slate-800/60 rounded-xl p-3 flex gap-2.5 items-start">
                 <i class="fa-solid fa-shield-halved text-emerald-500 text-sm mt-0.5"></i>
                 <div>
-                    <h4 class="text-[11px] font-bold text-slate-200">มาตรฐานการปกป้องข้อมูลสูงสุด</h4>
-                    <p class="text-[10px] text-slate-400 leading-relaxed mt-0.5">ระบบจะประมวลผลไฟล์ PDF อยู่ภายในเครื่องของคุณเท่านั้น ไม่มีการส่งไปเก็บในเซิร์ฟเวอร์อื่นเพื่อความปลอดภัยของผู้สมัคร</p>
+                    <h4 class="text-[11px] font-bold text-slate-200">มาตรฐานความปลอดภัย PDPA</h4>
+                    <p class="text-[10px] text-slate-400 leading-relaxed mt-0.5">ระบบจะประมวลผลและดึงข้อมูลข้อความจากไฟล์ PDF บนเบราว์เซอร์ของคุณเท่านั้น (ไม่มีการเก็บไฟล์ไว้บนเซิร์ฟเวอร์ใด ๆ)</p>
                 </div>
             </div>
 
@@ -205,7 +212,25 @@
                     <span id="candidateCount" class="text-xs text-slate-400 bg-slate-800 px-2 py-0.5 rounded-full font-medium">0 รายชื่อ</span>
                 </div>
                 
-                <div class="flex items-center gap-2">
+                <!-- Search and Filters Section -->
+                <div class="flex flex-wrap items-center gap-2">
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-2.5 pointer-events-none text-slate-500">
+                            <i class="fa-solid fa-magnifying-glass text-[10px]"></i>
+                        </span>
+                        <input type="text" id="searchBar" oninput="handleFilterChange()" placeholder="ค้นหาชื่อหรือคีย์เวิร์ด..." class="bg-slate-900 border border-slate-800 rounded-lg pl-8 pr-3 py-1.5 text-xs text-slate-300 focus:outline-none focus:border-brand-500 w-44 transition-all">
+                    </div>
+                    
+                    <select id="decisionFilter" onchange="handleFilterChange()" class="bg-slate-900 border border-slate-800 text-xs text-slate-300 rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-brand-500 cursor-pointer">
+                        <option value="all">ผลการกรองทั้งหมด</option>
+                        <option value="pass">เฉพาะผ่านการกรอง</option>
+                        <option value="fail">เฉพาะไม่ผ่านการกรอง</option>
+                    </select>
+
+                    <button onclick="exportToCSV()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs px-3 py-1.5 rounded-lg border border-slate-700 font-medium transition-all flex items-center gap-1.5">
+                        <i class="fa-solid fa-file-excel text-emerald-400"></i> ส่งออกเป็น Excel (CSV)
+                    </button>
+
                     <button onclick="showClearHistoryModal()" class="text-xs text-rose-400 hover:text-rose-300 px-3 py-1.5 rounded-lg border border-rose-500/20 hover:bg-rose-500/10 transition-all flex items-center gap-1.5 font-medium">
                         <i class="fa-solid fa-trash-can"></i> ล้างประวัติทั้งหมด
                     </button>
@@ -326,6 +351,14 @@
                             </div>
                         </div>
 
+                        <!-- PDPA Audit Trail -->
+                        <div class="bg-slate-900/30 border border-slate-800 p-3 rounded-xl flex items-center justify-between text-[10px] text-slate-400">
+                            <span class="flex items-center gap-1.5">
+                                <i class="fa-solid fa-file-signature text-emerald-500"></i> บันทึกความยินยอม PDPA
+                            </span>
+                            <span id="detPdpaLog" class="font-medium text-slate-300">ยินยอมแล้วเมื่อ -</span>
+                        </div>
+
                         <!-- Automation Actions (Simulated) -->
                         <div class="border-t border-slate-800 pt-4 flex flex-col gap-3">
                             <h4 class="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
@@ -350,7 +383,7 @@
 
     </main>
 
-    <!-- Cloud Database Integration Configuration Modal (Supabase) -->
+    <!-- Cloud Database Integration Configuration Modal (Supabase) - Optional Background feature -->
     <div id="cloudConfigModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
         <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md p-6 space-y-4 shadow-2xl">
             <div class="flex items-start justify-between">
@@ -414,6 +447,28 @@
         </div>
     </div>
 
+    <!-- API Error Modal -->
+    <div id="apiErrorModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md p-5 space-y-4 shadow-2xl">
+            <div class="flex items-center gap-3 text-rose-500">
+                <i class="fa-solid fa-circle-exclamation text-3xl"></i>
+                <div>
+                    <h3 class="font-bold text-sm text-slate-100">ข้อผิดพลาดในการเรียกใช้ Gemini API</h3>
+                    <p class="text-[11px] text-slate-400">การวิเคราะห์ล้มเหลวหลังจากลองใหม่แบบทวีคูณ (Backoff Failure)</p>
+                </div>
+            </div>
+            <div class="text-xs text-slate-300 bg-slate-950 p-3 rounded-lg border border-slate-800 font-mono overflow-x-auto max-h-32" id="apiErrorMessage">
+                Error log...
+            </div>
+            <p class="text-[11px] text-slate-400 leading-relaxed">
+                คำแนะนำ: ตรวจสอบความถูกต้องของ API Key, สิทธิ์การเปิดปิดโควตา หรือสถานะเครือข่ายอินเทอร์เน็ตของคุณอีกครั้ง
+            </p>
+            <div class="flex justify-end pt-2 border-t border-slate-800">
+                <button onclick="closeApiErrorModal()" class="bg-brand-600 hover:bg-brand-500 text-white text-xs py-2 px-5 rounded-lg font-bold">ตกลง</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Notification Toast Element -->
     <div id="toast" class="fixed bottom-5 right-5 z-50 transform translate-y-10 opacity-0 bg-slate-900 border border-slate-800 shadow-xl rounded-xl p-4 flex items-center gap-3 transition-all duration-300 max-w-sm">
         <div id="toastIcon" class="text-emerald-400 bg-emerald-400/10 p-2 rounded-lg">
@@ -445,6 +500,7 @@
 
         // Set App States
         let candidates = [];
+        let filteredCandidates = [];
         let selectedCandidateId = null;
         let apiKey = "";
         let supabaseClient = null;
@@ -456,9 +512,12 @@
             if (savedKey) {
                 document.getElementById('apiKeyInput').value = savedKey;
                 apiKey = savedKey;
+                updateGeminiStatusBadge(true);
+            } else {
+                updateGeminiStatusBadge(false);
             }
 
-            // Load saved Supabase config
+            // Load saved Supabase config (Optional)
             const savedDbUrl = localStorage.getItem('supabase_db_url');
             const savedDbKey = localStorage.getItem('supabase_db_key');
             if (savedDbUrl && savedDbKey) {
@@ -474,6 +533,22 @@
             setupDragAndDrop();
         });
 
+        // Toggle badge design based on active Key presence
+        function updateGeminiStatusBadge(hasKey) {
+            const badge = document.getElementById('geminiStatusBadge');
+            const warningAlert = document.getElementById('keyMissingAlert');
+            
+            if (hasKey) {
+                badge.className = "text-[9px] font-bold bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded border border-emerald-500/20 flex items-center gap-1 animate-pulse";
+                badge.innerHTML = `<i class="fa-solid fa-circle-play"></i> โหมดวิเคราะห์จริง (Live Gemini Active)`;
+                if (warningAlert) warningAlert.classList.add('hidden');
+            } else {
+                badge.className = "text-[9px] font-bold bg-amber-500/10 text-amber-400 px-2 py-0.5 rounded border border-amber-500/20 flex items-center gap-1";
+                badge.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> โหมดจำลอง (Demo Mode - โปรดใส่ API Key)`;
+                if (warningAlert) warningAlert.classList.remove('hidden');
+            }
+        }
+
         // Toggle PDPA Consent based drag/drop area activation
         function toggleUploadAvailability() {
             const consentChecked = document.getElementById('pdpaConsent').checked;
@@ -481,7 +556,7 @@
             const fileInput = document.getElementById('fileInput');
 
             if (consentChecked) {
-                dropZone.className = "border-2 border-dashed border-slate-700 hover:border-brand-500/50 rounded-xl p-5 flex flex-col items-center justify-center text-center cursor-pointer transition-all bg-slate-950/30";
+                dropZone.className = "border-2 border-dashed border-slate-700 hover:border-brand-500/50 rounded-xl p-5 flex flex-col items-center justify-center text-center cursor-pointer transition-all bg-slate-950/30 shadow-lg shadow-brand-500/5";
                 dropZone.querySelector('p').innerText = "ลากไฟล์ PDF มาวางตรงนี้";
                 dropZone.querySelectorAll('p')[1].innerText = "หรือคลิกเลือกไฟล์เพื่ออัปโหลด";
                 fileInput.disabled = false;
@@ -523,26 +598,24 @@
             });
         }
 
-        // Initialize Supabase Connection
+        // Initialize Supabase Connection (Optional)
         function initializeSupabase(url, key, silent = false) {
             try {
                 if (!url || !key) return;
                 supabaseClient = supabase.createClient(url, key);
-                document.getElementById('dbStatusBadge').className = "text-[9px] font-bold bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded border border-emerald-500/20 flex items-center gap-1 animate-pulse";
-                document.getElementById('dbStatusBadge').innerHTML = `<i class="fa-solid fa-cloud"></i> เชื่อมต่อคลาวด์สำเร็จ (Supabase Clouddb)`;
-                syncCandidatesFromSupabase();
                 if (!silent) {
-                    showToast("เชื่อมต่อข้อมูลเสร็จสิ้น", "ระบบเชื่อมโยงเข้าฐานข้อมูลคลาวด์แล้ว", "emerald");
+                    showToast("เชื่อมต่อฐานข้อมูลคลาวด์แล้ว", "ระบบจะบันทึกและซิงค์ข้อมูลผ่าน Supabase", "emerald");
                 }
+                syncCandidatesFromSupabase();
             } catch (err) {
                 console.error("Supabase Init Error: ", err);
                 if (!silent) {
-                    showToast("การเชื่อมต่อคลาวด์ล้มเหลว", "กรุณาตรวจสอบ URL หรือ Key อีกครั้ง", "rose");
+                    showToast("การเชื่อมต่อคลาวด์ล้มเหลว", "โปรดตรวจสอบ URL และ Key ของ Supabase ใหม่", "rose");
                 }
             }
         }
 
-        // Save Supabase Configuration locally
+        // Save Supabase Configuration locally (Optional advanced)
         function saveDatabaseConfig() {
             const url = document.getElementById('dbUrlInput').value.trim();
             const key = document.getElementById('dbKeyInput').value.trim();
@@ -564,13 +637,8 @@
             localStorage.removeItem('supabase_db_key');
             document.getElementById('dbUrlInput').value = "";
             document.getElementById('dbKeyInput').value = "";
-            
-            // Revert back to local-only badge
-            document.getElementById('dbStatusBadge').className = "text-[9px] font-bold bg-slate-800 text-slate-400 px-2 py-0.5 rounded border border-slate-700/60 flex items-center gap-1";
-            document.getElementById('dbStatusBadge').innerHTML = `<i class="fa-solid fa-laptop-code text-indigo-400"></i> โหมดประมวลผลในเครื่อง (Local Mode)`;
-            
             closeCloudConfigModal();
-            showToast("ตัดการเชื่อมต่อแล้ว", "ระบบเปลี่ยนกลับมาทำงานในโหมดจัดเก็บในเบราว์เซอร์อย่างปลอดภัย 100%", "info");
+            showToast("ตัดการเชื่อมต่อคลาวด์แล้ว", "ระบบเปลี่ยนกลับมาทำงานในโหมดโลคอลสมบูรณ์แบบ", "info");
         }
 
         // Sync Candidate Records from Supabase cloud database
@@ -588,11 +656,10 @@
                 if (data && data.length > 0) {
                     candidates = data;
                     saveCandidatesToLocalStorageOnly();
-                    renderCandidateList();
+                    handleFilterChange();
                 }
             } catch (err) {
                 console.error("Database Fetch Sync Error: ", err);
-                showToast("ดึงข้อมูลไม่สำเร็จ", "มีปัญหาระหว่างซิงค์ข้อมูลคลาวด์", "rose");
             }
         }
 
@@ -601,19 +668,15 @@
             if (!supabaseClient) return null;
 
             try {
-                // Ensure unique name
                 const fileExt = file.name.split('.').pop();
                 const fileName = `resume_${Date.now()}_${Math.floor(Math.random() * 1000)}.${fileExt}`;
                 const filePath = `resumes/${fileName}`;
 
-                // Upload files to Private Bucket (Recommended: "candidate_resumes" bucket)
                 const { data, error } = await supabaseClient.storage
                     .from('candidate_resumes')
                     .upload(filePath, file, { cacheControl: '3600', upsert: false });
 
                 if (error) throw error;
-
-                // Return path to store in candidate row
                 return filePath;
             } catch (err) {
                 console.error("Storage upload failed: ", err);
@@ -633,7 +696,6 @@
                 if (error) throw error;
             } catch (err) {
                 console.error("Insert Candidate Database Error: ", err);
-                showToast("บันทึกคลาวด์ไม่สำเร็จ", "ข้อมูลถูกเก็บในคอมเครื่องแทน", "rose");
             }
         }
 
@@ -655,7 +717,14 @@
             const val = document.getElementById('apiKeyInput').value.trim();
             apiKey = val;
             localStorage.setItem('gemini_api_key', val);
-            showToast("บันทึกคีย์เรียบร้อย", "ระบบได้รับการตั้งค่า Gemini API Key แล้ว", "emerald");
+            
+            if (val) {
+                updateGeminiStatusBadge(true);
+                showToast("เปิดใช้ระบบจริงเรียบร้อย!", "ขณะนี้พร้อมสำหรับการคัดกรองไฟล์ PDF จริงของคุณแล้ว", "emerald");
+            } else {
+                updateGeminiStatusBadge(false);
+                showToast("ยกเลิกคีย์แล้ว", "ระบบปรับกลับไปรันในโหมดข้อมูลจำลอง", "info");
+            }
         }
 
         // Toast Notifications
@@ -762,9 +831,12 @@
                         }
                     }
 
-                    // Append Row metadata
+                    // Append Row metadata and PDPA Consent Logs
+                    const now = new Date();
                     result.id = 'cand_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
-                    result.createdAt = new Date().toISOString();
+                    result.createdAt = now.toISOString();
+                    result.pdpaConsentLogged = true;
+                    result.pdpaConsentTimestamp = now.toLocaleString('th-TH');
 
                     // Push states
                     candidates.push(result);
@@ -779,7 +851,7 @@
 
                 } catch (err) {
                     console.error("Error processing file", file.name, err);
-                    showToast("ไม่สามารถวิเคราะห์ไฟล์ได้", `เกิดปัญหาขณะอ่านข้อมูล: ${file.name}`, "rose");
+                    showApiErrorModal(err.message || err);
                 }
             }
 
@@ -789,10 +861,12 @@
             
             setTimeout(() => {
                 pPanel.classList.add('hidden');
-                renderCandidateList();
+                handleFilterChange();
             }, 1200);
 
-            showToast("ประมวลผลเสร็จสิ้น", `คัดกรองเรซูเม่และวิเคราะห์เสร็จสิ้น ${successCount} รายการ`, "emerald");
+            if (successCount > 0) {
+                showToast("ประมวลผลเสร็จสิ้น", `คัดกรองเรซูเม่และวิเคราะห์เสร็จสิ้น ${successCount} รายการ`, "emerald");
+            }
         }
 
         // Parser for PDF text content inside browser
@@ -817,7 +891,7 @@
             }
         }
 
-        // API Call to Gemini with strict Schema Validation
+        // API Call to Gemini with strict Schema Validation and Exponential Backoff
         async function callGeminiAI(resumeText, jobTitle, jdText) {
             const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
             
@@ -854,8 +928,8 @@ Return ONLY a single valid JSON object following this JSON schema:
                 }
             };
 
-            // Backoff logic
-            let attempts = 4;
+            // Backoff logic: retries up to 5 times with delays of 1s, 2s, 4s, 8s, 16s.
+            let attempts = 5;
             let delay = 1000;
             
             for (let attempt = 1; attempt <= attempts; attempt++) {
@@ -866,16 +940,22 @@ Return ONLY a single valid JSON object following this JSON schema:
                         body: JSON.stringify(payload)
                     });
 
-                    if (!response.ok) throw new Error(`API Status: ${response.status}`);
+                    if (!response.ok) {
+                        const errorBody = await response.text();
+                        throw new Error(`API returned ${response.status}: ${errorBody}`);
+                    }
 
                     const data = await response.json();
                     const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
                     if (text) {
                         return JSON.parse(text);
                     }
-                    throw new Error("No response output");
+                    throw new Error("โครงสร้างผลลัพธ์ของ API ไม่ถูกต้องหรือไม่สมบูรณ์");
                 } catch (err) {
-                    if (attempt === attempts) throw err;
+                    if (attempt === attempts) {
+                        throw new Error(`การเชื่อมต่อล้มเหลวหลังจากลองใหม่ ${attempts} ครั้ง: ${err.message}`);
+                    }
+                    // Wait with exponential backoff
                     await new Promise(resolve => setTimeout(resolve, delay));
                     delay *= 2;
                 }
@@ -897,7 +977,7 @@ Return ONLY a single valid JSON object following this JSON schema:
                 skillsMissing: ["ความชำนาญในการเขียน Dashboard", "Power BI"],
                 summary: `ผู้สมัครมีประสบการณ์ในตำแหน่งหัวหน้าสายผลิตงานอาหารแช่แข็งมาร่วม 6 ปีเต็ม สามารถคุมเครื่องจักรและเข้าใจมาตรฐานสากลเป็นอย่างดี ทักษะรอบด้านค่อนข้างดีเยี่ยม ขาดเพียงการจัดทำ Dashboard แสดงผลแบบ Real-time`,
                 strengths: [
-                    "มีประสบการณ์ตรงในโรงงานสแปมและอาหารแปรรูป",
+                    "มีประสบการณ์ตรงในโรงงานอาหารแปรรูป",
                     "ทัศนคติการจัดการทีมหน้าสายงานมีประสิทธิภาพ",
                     "ควบคุมค่าและคำนวณ OEE ประจำวันได้อย่างดี"
                 ],
@@ -911,6 +991,8 @@ Return ONLY a single valid JSON object following this JSON schema:
 
         // Inject 3 Demo candidates instantly
         function injectDemoCandidates() {
+            const now = new Date();
+            const timestampStr = now.toLocaleString('th-TH');
             const demoPool = [
                 {
                     id: 'cand_demo_1',
@@ -929,7 +1011,9 @@ Return ONLY a single valid JSON object following this JSON schema:
                     weaknesses: [
                         "ทักษะระบบ SAP จำเป็นต้องมีคนคอยแนะนำช่วยเหลือเบื้องต้น"
                     ],
-                    decision: "ผ่านการกรอง (เรียกสัมภาษณ์)"
+                    decision: "ผ่านการกรอง (เรียกสัมภาษณ์)",
+                    pdpaConsentLogged: true,
+                    pdpaConsentTimestamp: timestampStr
                 },
                 {
                     id: 'cand_demo_2',
@@ -949,7 +1033,9 @@ Return ONLY a single valid JSON object following this JSON schema:
                         "ประสบการณ์บริหารเป็นแบบ QA/QC ไม่ใช่คนคุมยอดผลิตหลักโดยตรง",
                         "จำเป็นต้องเสริมความรู้เรื่องโปรแกรมแสดงผลเชิงธุรกิจเพิ่มเติม"
                     ],
-                    decision: "ผ่านการกรอง (เรียกสัมภาษณ์)"
+                    decision: "ผ่านการกรอง (เรียกสัมภาษณ์)",
+                    pdpaConsentLogged: true,
+                    pdpaConsentTimestamp: timestampStr
                 },
                 {
                     id: 'cand_demo_3',
@@ -968,28 +1054,54 @@ Return ONLY a single valid JSON object following this JSON schema:
                         "ไม่มีทักษะความคุ้นเคยกับกฎระเบียบสุขอนามัยสายการผลิตอาหาร",
                         "ประวัติไม่ตรงตามที่ต้องการมากกว่าครึ่ง"
                     ],
-                    decision: "ไม่ผ่านการกรอง (เก็บประวัติ)"
+                    decision: "ไม่ผ่านการกรอง (เก็บประวัติ)",
+                    pdpaConsentLogged: true,
+                    pdpaConsentTimestamp: timestampStr
                 }
             ];
 
             candidates = [...candidates, ...demoPool];
             saveCandidatesToLocalStorageOnly();
-            renderCandidateList();
+            handleFilterChange();
             showToast("เพิ่มข้อมูลจำลองแล้ว", "เพิ่มผู้สมัครตัวอย่าง 3 ท่านเสร็จสิ้น (เรียงลำดับตามคะแนน)", "emerald");
         }
 
-        // Render Candidates Table
+        // Search & Filter Logic Handler
+        function handleFilterChange() {
+            const searchQuery = document.getElementById('searchBar').value.toLowerCase().trim();
+            const decisionFilter = document.getElementById('decisionFilter').value;
+
+            filteredCandidates = candidates.filter(cand => {
+                const matchSearch = 
+                    cand.candidateName.toLowerCase().includes(searchQuery) || 
+                    (cand.currentTitle && cand.currentTitle.toLowerCase().includes(searchQuery)) ||
+                    (cand.skillsFound && cand.skillsFound.some(s => s.toLowerCase().includes(searchQuery)));
+                
+                let matchDecision = true;
+                if (decisionFilter === 'pass') {
+                    matchDecision = cand.decision.includes('ผ่านการกรอง');
+                } else if (decisionFilter === 'fail') {
+                    matchDecision = cand.decision.includes('ไม่ผ่านการกรอง');
+                }
+
+                return matchSearch && matchDecision;
+            });
+
+            renderCandidateList();
+        }
+
+        // Render Candidates Table/List with current filters applied
         function renderCandidateList() {
             const listWrap = document.getElementById('candidateCardsList');
             const emptyState = document.getElementById('emptyState');
             const countLabel = document.getElementById('candidateCount');
 
             // Sort by Match FitScore descending
-            candidates.sort((a, b) => b.fitScore - a.fitScore);
+            filteredCandidates.sort((a, b) => b.fitScore - a.fitScore);
 
-            countLabel.innerText = `${candidates.length} รายชื่อ`;
+            countLabel.innerText = `${filteredCandidates.length} จาก ${candidates.length} รายชื่อ`;
 
-            if (candidates.length === 0) {
+            if (filteredCandidates.length === 0) {
                 emptyState.classList.remove('hidden');
                 listWrap.innerHTML = "";
                 document.getElementById('detailPanel').classList.add('hidden');
@@ -1000,7 +1112,7 @@ Return ONLY a single valid JSON object following this JSON schema:
             emptyState.classList.add('hidden');
             listWrap.innerHTML = "";
 
-            candidates.forEach((cand, idx) => {
+            filteredCandidates.forEach((cand, idx) => {
                 const card = document.createElement('div');
                 card.onclick = () => selectCandidate(cand.id);
                 
@@ -1039,7 +1151,7 @@ Return ONLY a single valid JSON object following this JSON schema:
 
                     <div class="flex items-center justify-between text-[9px] pt-1 border-t border-slate-800/40">
                         <span class="flex items-center gap-1 text-slate-400">
-                            <i class="fa-solid fa-lightbulb text-brand-400"></i> ทักษะครบ: ${cand.skillsFound ? cand.skillsFound.length : 0}
+                            <i class="fa-solid fa-lightbulb text-brand-400"></i> ทักษะตรง: ${cand.skillsFound ? cand.skillsFound.length : 0}
                         </span>
                         <span class="font-semibold text-brand-300">
                             ${cand.decision}
@@ -1050,18 +1162,24 @@ Return ONLY a single valid JSON object following this JSON schema:
                 listWrap.appendChild(card);
             });
 
-            // Auto-select first item if exists
-            if (!selectedCandidateId && candidates.length > 0) {
-                selectCandidate(candidates[0].id);
+            // Auto-select first filtered item if none is currently selected from current view
+            const stillExists = filteredCandidates.some(c => c.id === selectedCandidateId);
+            if ((!selectedCandidateId || !stillExists) && filteredCandidates.length > 0) {
+                selectCandidate(filteredCandidates[0].id);
             }
         }
 
         // Display Candidate Details
         async function selectCandidate(id) {
             selectedCandidateId = id;
-            renderCandidateList();
+            
+            // Highlight selected card inside active view list
+            const cards = document.getElementById('candidateCardsList').children;
+            for(let card of cards) {
+                card.classList.remove('border-brand-500', 'bg-brand-500/5', 'shadow-lg', 'shadow-brand-500/5');
+            }
 
-            const cand = candidates.find(c => c.id === id);
+            const cand = filteredCandidates.find(c => c.id === id);
             if (!cand) return;
 
             // Populate Card View Report
@@ -1075,6 +1193,14 @@ Return ONLY a single valid JSON object following this JSON schema:
             document.getElementById('detMatchPct').innerText = `${cand.matchPercentage}%`;
             document.getElementById('detMatchBar').style.width = `${cand.matchPercentage}%`;
             document.getElementById('detSummary').innerText = `"${cand.summary}"`;
+            
+            // PDPA Log
+            const pdpaLog = document.getElementById('detPdpaLog');
+            if (cand.pdpaConsentLogged) {
+                pdpaLog.innerHTML = `<span class="text-emerald-400 font-bold"><i class="fa-solid fa-circle-check"></i> ยินยอมเรียบร้อยเมื่อ ${cand.pdpaConsentTimestamp || 'ประมวลผล'}</span>`;
+            } else {
+                pdpaLog.innerHTML = `<span class="text-slate-500 font-semibold">ไม่พบบันทึกระเบียน</span>`;
+            }
 
             // Skills Found
             const foundWrap = document.getElementById('detSkillsFound');
@@ -1105,14 +1231,12 @@ Return ONLY a single valid JSON object following this JSON schema:
             let linkContainer = document.getElementById(linkContainerId);
             
             if (cand.secureResumePath && supabaseClient) {
-                // If there's an active storage path, you can request a temporary safe Signed URL (PDPA Compliance)
                 try {
                     const { data, error } = await supabaseClient.storage
                         .from('candidate_resumes')
                         .createSignedUrl(cand.secureResumePath, 300); // URL expires in 5 minutes
 
                     if (!error && data) {
-                        // Append download or preview link inside report UI as safe reference
                         const previewLinkHtml = `
                             <div class="mt-2 text-[10px] text-slate-400">
                                 <a href="${data.signedUrl}" target="_blank" class="text-brand-400 hover:underline font-bold">
@@ -1131,7 +1255,6 @@ Return ONLY a single valid JSON object following this JSON schema:
                     console.error("Signed URL retrieval failed: ", e);
                 }
             } else {
-                // If running local mode, we display that file is processed memory-only
                 if (!linkContainer) {
                     linkContainer = document.createElement('div');
                     linkContainer.id = linkContainerId;
@@ -1139,7 +1262,7 @@ Return ONLY a single valid JSON object following this JSON schema:
                 }
                 linkContainer.innerHTML = `
                     <div class="mt-1 text-[10px] text-slate-400 italic">
-                        <i class="fa-solid fa-circle-nodes text-indigo-400 mr-1"></i> ประมวลผลแบบไร้เซิร์ฟเวอร์ (ข้อมูลไม่ถูกแชร์ภายนอก)
+                        <i class="fa-solid fa-circle-nodes text-indigo-400 mr-1"></i> ประมวลผลแบบ Local ในเครื่อง (ไม่มีข้อมูลส่งขึ้นคลาวด์)
                     </div>
                 `;
             }
@@ -1149,12 +1272,57 @@ Return ONLY a single valid JSON object following this JSON schema:
             }
         }
 
+        // Export To CSV Functionality
+        function exportToCSV() {
+            if (candidates.length === 0) {
+                showToast("ไม่มีข้อมูลผู้สมัคร", "กรุณานำเข้าเรซูเม่อย่างน้อย 1 รายการก่อนส่งออก", "rose");
+                return;
+            }
+
+            let csvContent = "\uFEFF"; // UTF-8 BOM to prevent Thai garbled text in Excel
+            csvContent += "ลำดับ,ชื่อผู้สมัคร,ตำแหน่งปัจจุบัน,คะแนนความเข้ากันได้ (%),ผลสรุปความเห็นของ AI,ผลการตัดสินใจ,ทักษะที่พบ,ทักษะที่ขาด,วันเวลากดยินยอม PDPA\n";
+
+            candidates.forEach((cand, idx) => {
+                const skillsF = cand.skillsFound ? cand.skillsFound.join(" | ") : "";
+                const skillsM = cand.skillsMissing ? cand.skillsMissing.join(" | ") : "";
+                const summaryText = cand.summary ? cand.summary.replace(/"/g, '""') : "";
+                
+                const row = [
+                    idx + 1,
+                    `"${cand.candidateName}"`,
+                    `"${cand.currentTitle || '-'}"`,
+                    cand.fitScore,
+                    `"${summaryText}"`,
+                    `"${cand.decision}"`,
+                    `"${skillsF}"`,
+                    `"${skillsM}"`,
+                    `"${cand.pdpaConsentTimestamp || '-'}"`
+                ].join(",");
+
+                csvContent += row + "\n";
+            });
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            const url = URL.createObjectURL(blob);
+            
+            link.setAttribute("href", url);
+            link.setAttribute("download", `AI_Screening_Report_${new Date().toISOString().slice(0,10)}.csv`);
+            link.style.visibility = 'hidden';
+            
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            showToast("ส่งออกข้อมูลสำเร็จ", "ประวัติและผลการจัดอันดับถูกบันทึกเป็นไฟล์ CSV แล้ว", "emerald");
+        }
+
         // Local Storage State Persisting
         function loadCandidatesFromLocal() {
             const savedCandidates = localStorage.getItem('screened_candidates');
             if (savedCandidates) {
                 candidates = JSON.parse(savedCandidates);
-                renderCandidateList();
+                handleFilterChange();
             }
         }
 
@@ -1172,7 +1340,6 @@ Return ONLY a single valid JSON object following this JSON schema:
         }
 
         async function confirmClearAllCandidates() {
-            // Delete Supabase records if connected
             if (supabaseClient) {
                 try {
                     const { error } = await supabaseClient
@@ -1190,15 +1357,39 @@ Return ONLY a single valid JSON object following this JSON schema:
             candidates = [];
             selectedCandidateId = null;
             localStorage.removeItem('screened_candidates');
-            renderCandidateList();
+            handleFilterChange();
             closeDeleteModal();
             showToast("ล้างประวัติเรียบร้อย", "รายชื่อและคะแนนทั้งหมดถูกล้างแล้ว", "info");
+        }
+
+        // API Error Modal View
+        function showApiErrorModal(msg) {
+            document.getElementById('apiErrorMessage').innerText = msg;
+            document.getElementById('apiErrorModal').classList.remove('hidden');
+        }
+
+        function closeApiErrorModal() {
+            document.getElementById('apiErrorModal').classList.add('hidden');
         }
 
         // Modal triggers
         function openCloudConfigModal() {
             document.getElementById('cloudConfigModal').classList.remove('hidden');
         }
+
+        // Pre-fill inputs in Advanced Settings Modal if saved in local storage
+        const modal = document.getElementById('cloudConfigModal');
+        const observer = new MutationObserver(function(mutations) {
+            mutations.forEach(function(mutation) {
+                if (mutation.attributeName === "class" && !modal.classList.contains('hidden')) {
+                    const savedDbUrl = localStorage.getItem('supabase_db_url');
+                    const savedDbKey = localStorage.getItem('supabase_db_key');
+                    if (savedDbUrl) document.getElementById('dbUrlInput').value = savedDbUrl;
+                    if (savedDbKey) document.getElementById('dbKeyInput').value = savedDbKey;
+                }
+            });
+        });
+        observer.observe(modal, { attributes: true });
 
         function closeCloudConfigModal() {
             document.getElementById('cloudConfigModal').classList.add('hidden');
